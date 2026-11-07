@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang=zh-CN>
+<head>
+  <meta charset=utf-8>
+  <meta name=viewport content=width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no>
+  <meta name=format-detection content=telephone=no,email=no,address=no>
+  <meta name=theme-color content=#17252a>
+  <title>冬至 · 见字如面</title>
+  <style>
+    :root{--ink:#233332;--paper:#f4efe4;--red:#a43a2f;--night:#17252a;--white:#fffdf7}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{min-height:100%;margin:0;background:var(--night);color:var(--ink);font-family:'Songti SC','STSong','SimSun',serif}
+    body{overflow:hidden}body.letter-open{overflow-x:hidden;overflow-y:auto}button{font:inherit}.scene{position:fixed;inset:0;z-index:0;width:100%;height:100%;pointer-events:none}
+    .cover{position:fixed;inset:0;z-index:2;width:100%;min-height:100svh;display:grid;grid-template-rows:1fr auto;align-items:center;padding:max(28px,env(safe-area-inset-top)) 24px max(28px,env(safe-area-inset-bottom));color:var(--white);overflow:hidden;transition:opacity 700ms ease,visibility 700ms ease}
+    .cover:after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(11,25,29,.08),rgba(11,25,29,.18) 52%,rgba(11,25,29,.72))}
+    .cover.is-open{opacity:0;visibility:hidden;pointer-events:none}.cover-copy{width:min(100%,440px);margin:8vh auto 0;text-align:center}
+    .season-mark{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;margin-bottom:24px;border:1px solid rgba(255,253,247,.62);border-radius:50%;font-size:14px;line-height:1}
+    h1{margin:0;font-size:clamp(60px,19vw,92px);font-weight:400;line-height:1;letter-spacing:0;text-shadow:0 4px 24px rgba(0,0,0,.2)}
+    .cover-subtitle{margin:24px 0 0;font-size:15px;line-height:1.8;color:rgba(255,253,247,.82)}.open-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+    .open-button{display:inline-flex;align-items:center;justify-content:center;min-width:150px;min-height:48px;padding:0 28px;border:1px solid rgba(255,253,247,.72);border-radius:4px;background:rgba(18,39,44,.48);color:var(--white);font-size:16px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    .open-button:active{transform:scale(.98)}.open-hint{margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;font-size:11px;color:rgba(255,253,247,.58)}
+    .letter-page{position:relative;z-index:1;min-height:100vh;padding:68px 18px 96px;background:var(--paper);opacity:0;visibility:hidden;transform:translateY(18px);transition:opacity 850ms ease 240ms,transform 850ms ease 240ms,visibility 850ms ease 240ms}
+    .letter-page.is-visible{opacity:1;visibility:visible;transform:translateY(0)}.letter-page:before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.38;background-image:radial-gradient(circle at 20% 10%,rgba(92,74,45,.08) 0 1px,transparent 1.5px),radial-gradient(circle at 70% 40%,rgba(92,74,45,.06) 0 1px,transparent 1.5px);background-size:29px 31px,37px 41px}
+    .letter{position:relative;width:min(100%,680px);margin:0 auto}.letter-head{margin-bottom:48px;text-align:center}.letter-kicker{margin:0 0 14px;color:var(--red);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;font-size:12px}
+    .letter-title{margin:0;color:var(--ink);font-size:clamp(30px,9vw,46px);font-weight:400;line-height:1.24}.divider{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:24px;color:var(--red)}
+    .divider:before,.divider:after{content:'';width:44px;height:1px;background:rgba(164,58,47,.42)}.divider-mark{width:7px;height:7px;border:1px solid currentColor;transform:rotate(45deg)}
+    .salutation{margin:0 0 28px;font-size:19px;line-height:1.9}.letter-body p{margin:0 0 28px;font-size:17px;line-height:2.05;text-align:justify;text-justify:inter-ideograph}
+    .letter-body p:first-child:first-letter{float:left;margin:9px 7px 0 0;color:var(--red);font-size:44px;line-height:.8}.quote{margin:38px 0;padding:24px 20px;border-top:1px solid rgba(164,58,47,.24);border-bottom:1px solid rgba(164,58,47,.24);color:#68473f;font-size:19px;line-height:1.9;text-align:center}
+    .closing{margin-top:46px;text-align:right}.closing p{margin:0;font-size:16px;line-height:2}.seal{display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;margin-top:18px;border:2px solid var(--red);color:var(--red);font-size:14px;line-height:1.25;text-align:center;transform:rotate(-4deg)}
+    .wish{position:relative;width:min(100%,680px);margin:76px auto 0;padding:34px 22px;border:1px solid rgba(35,51,50,.16);border-radius:4px;text-align:center}.wish-title{margin:0 0 12px;color:var(--red);font-size:22px;font-weight:400}.wish-copy{margin:0;font-size:15px;line-height:1.9;color:#53615e}
+    .restart-button{display:inline-flex;align-items:center;justify-content:center;min-width:108px;min-height:42px;margin-top:22px;padding:0 20px;border:1px solid rgba(35,51,50,.38);border-radius:4px;background:transparent;color:var(--ink);font-size:14px;cursor:pointer}.restart-button:active{background:rgba(35,51,50,.06)}
+    @media(min-width:700px){.letter-page{padding-top:92px}.letter-body p{font-size:18px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition-duration:1ms!important;animation-duration:1ms!important}}
+  </style>
+</head>
+<body>
+  <canvas class=scene id=winterScene aria-hidden=true></canvas>
+  <section class=cover id=cover>
+    <div class=cover-copy>
+      <div class=season-mark>节气</div>
+      <h1>冬至</h1>
+      <p class=cover-subtitle>夜最长，思念有光<br>一封写给邬小姐的信</p>
+    </div>
+    <div class=open-wrap>
+      <button class=open-button id=openLetter type=button>启封</button>
+      <p class=open-hint>轻触，见字如面</p>
+    </div>
+  </section>
+  <main class=letter-page id=letterPage aria-hidden=true>
+    <article class=letter>
+      <header class=letter-head>
+        <p class=letter-kicker>冬至 · 岁末长信</p>
+        <h2 class=letter-title>见字如面</h2>
+        <div class=divider aria-hidden=true><span class=divider-mark></span></div>
+      </header>
+      <p class=salutation>亲爱的邬小姐：</p>
+      <div class=letter-body>
+        <p>冬至到了。风把最后几片秋叶轻轻收走，街巷安静下来，屋檐与枝头都等着一场雪。而你向我走来的时候，漫长的冬夜忽然有了暖意。此刻，你依然是我世界里唯一的主角。</p>
+        <p>人们说，冬至是一年里白昼最短、夜晚最长的一天。可我并不觉得夜长，因为想到你，远处的灯火便有了方向；也不觉得天冷，因为你的名字落在心上，就像捧住一碗刚出锅的汤圆，温热、圆满，让人舍不得放下。</p>
+        <p>我原先以为，是我一个人在茫茫人海里寻找。听风穿过地铁，等过一班又一班列车，看过千帆过境，也把心事整理了千遍。后来才明白，我们一直是同一轮月亮下的两个人。等待虽然慢，虽然长，可只要知道你会到来，一切就都值得。</p>
+        <div class=quote>只愿君心似我心，定不负相思意。</div>
+        <p>英文表达爱意是直白的一句“I LOVE YOU”，汉语里的喜欢却有许多模样：是看月亮时想起你，是走过热闹街市仍一眼认出你，也是于千万人的相逢里，不早一步，不晚一步，刚巧遇见。</p>
+        <p>我喜欢这份含蓄，也愿意把爱说得直接。想与你共看春花、夏雨、秋叶，也想在每一个冬至，与你围坐灯下，吃一碗热腾腾的汤圆。窗外寒意正深，屋内有你，便是团圆。</p>
+        <p>亲爱的邬小姐，我还有太多话想亲口对你说。文字只能写下心意的一角，而我们的故事才刚刚拉开序幕。愿往后的每一个寒夜都有灯，每一次归途都有我，每一年冬至，都能与你见面。</p>
+      </div>
+      <footer class=closing>
+        <p>冬至安康，岁岁相伴</p><p>写于最长的一夜</p>
+        <div class=seal aria-label=心意印章>念念<br>不忘</div>
+      </footer>
+    </article>
+    <section class=wish aria-label=冬至祝愿>
+      <h3 class=wish-title>冬至大如年，人间小团圆</h3>
+      <p class=wish-copy>愿所有等待都有归期，所有真心都被珍惜。</p>
+      <button class=restart-button id=restart type=button>再看一遍</button>
+    </section>
+  </main>
+  <script>
+    (function(){
+      var canvas=document.getElementById('winterScene'),ctx=canvas.getContext('2d');
+      var cover=document.getElementById('cover'),page=document.getElementById('letterPage');
+      var flakes=[],running=true,w=0,h=0,ratio=1;
+      var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function random(min,max){return Math.random()*(max-min)+min}
+      function reset(f,initial){f.x=random(0,w);f.y=initial?random(0,h):random(-80,-10);f.r=random(.8,2.4);f.speed=random(.25,.8);f.drift=random(-.22,.22);f.alpha=random(.28,.82)}
+      function resize(){
+        w=window.innerWidth;h=window.innerHeight;ratio=Math.min(window.devicePixelRatio||1,2);
+        canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio);canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(ratio,0,0,ratio,0,0);
+        var count=Math.min(110,Math.max(45,Math.round(w*h/11500)));flakes=[];
+        for(var i=0;i<count;i+=1){var flake={};reset(flake,true);flakes.push(flake)}draw()
+      }
+      function mountain(points,color){ctx.beginPath();ctx.moveTo(0,h);for(var i=0;i<points.length;i+=1){ctx.lineTo(points[i][0]*w,points[i][1]*h)}ctx.lineTo(w,h);ctx.closePath();ctx.fillStyle=color;ctx.fill()}
+      function plum(){
+        ctx.save();ctx.strokeStyle='rgba(26,28,26,.78)';ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.lineWidth=Math.max(4,w*.012);ctx.moveTo(w*.02,h*.22);ctx.bezierCurveTo(w*.14,h*.18,w*.22,h*.28,w*.36,h*.11);ctx.stroke();
+        ctx.lineWidth=Math.max(2,w*.006);ctx.beginPath();ctx.moveTo(w*.16,h*.21);ctx.quadraticCurveTo(w*.19,h*.12,w*.25,h*.08);ctx.moveTo(w*.23,h*.22);ctx.quadraticCurveTo(w*.28,h*.18,w*.31,h*.13);ctx.stroke();
+        var flowers=[[.15,.20,3],[.19,.14,4],[.24,.09,3],[.25,.20,3],[.30,.14,4],[.35,.11,3]];
+        for(var i=0;i<flowers.length;i+=1){var f=flowers[i],x=f[0]*w,y=f[1]*h,r=f[2];ctx.fillStyle='rgba(195,70,62,.92)';for(var p=0;p<5;p+=1){var a=Math.PI*2/5*p-Math.PI/2;ctx.beginPath();ctx.arc(x+Math.cos(a)*r,y+Math.sin(a)*r,r*.72,0,Math.PI*2);ctx.fill()}ctx.fillStyle='#e2bf7a';ctx.beginPath();ctx.arc(x,y,1.2,0,Math.PI*2);ctx.fill()}ctx.restore()
+      }
+      function draw(){
+        var sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#102129');sky.addColorStop(.56,'#29444a');sky.addColorStop(1,'#788b83');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+        var mx=w*.76,my=h*.19,mr=Math.min(w,h)*.09,glow=ctx.createRadialGradient(mx,my,mr*.2,mx,my,mr*2.8);glow.addColorStop(0,'rgba(255,244,204,.42)');glow.addColorStop(1,'rgba(255,244,204,0)');ctx.fillStyle=glow;ctx.fillRect(mx-mr*3,my-mr*3,mr*6,mr*6);ctx.beginPath();ctx.arc(mx,my,mr,0,Math.PI*2);ctx.fillStyle='#f3e8c7';ctx.fill();
+        mountain([[0,.66],[.2,.49],[.34,.61],[.52,.43],[.72,.63],[.9,.5],[1,.59]],'rgba(32,56,60,.92)');
+        mountain([[0,.74],[.16,.6],[.36,.71],[.58,.57],[.76,.73],[1,.63]],'#20383b');
+        mountain([[0,.84],[.22,.72],[.43,.82],[.65,.68],[.82,.81],[1,.74]],'#162a2d');
+        ctx.fillStyle='rgba(237,242,233,.88)';ctx.beginPath();ctx.moveTo(0,h*.82);ctx.quadraticCurveTo(w*.22,h*.77,w*.47,h*.84);ctx.quadraticCurveTo(w*.72,h*.89,w,h*.8);ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.closePath();ctx.fill();
+        var x=w*.72,y=h*.73,hw=Math.max(58,w*.17),hh=hw*.62;ctx.fillStyle='#182827';ctx.fillRect(x,y,hw,hh);ctx.beginPath();ctx.moveTo(x-hw*.12,y);ctx.lineTo(x+hw*.5,y-hh*.62);ctx.lineTo(x+hw*1.12,y);ctx.closePath();ctx.fill();ctx.fillStyle='#e4b865';ctx.fillRect(x+hw*.22,y+hh*.24,hw*.24,hh*.34);ctx.fillRect(x+hw*.62,y+hh*.24,hw*.18,hh*.34);
+        plum();for(var i=0;i<flakes.length;i+=1){var f=flakes[i];ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,'+f.alpha+')';ctx.fill()}
+      }
+      function animate(){if(!running||reduce){return}for(var i=0;i<flakes.length;i+=1){var f=flakes[i];f.y+=f.speed;f.x+=f.drift;if(f.y>h+10||f.x< -10||f.x>w+10){reset(f,false)}}draw();window.requestAnimationFrame(animate)}
+      function openLetter(){document.body.classList.add('letter-open');cover.classList.add('is-open');page.classList.add('is-visible');page.setAttribute('aria-hidden','false');running=false;window.setTimeout(function(){canvas.style.display='none';window.scrollTo(0,0)},720)}
+      function restart(){document.body.classList.remove('letter-open');canvas.style.display='block';running=true;cover.classList.remove('is-open');page.classList.remove('is-visible');page.setAttribute('aria-hidden','true');window.scrollTo(0,0);if(!reduce){window.requestAnimationFrame(animate)}else{draw()}}
+      document.getElementById('openLetter').addEventListener('click',openLetter);document.getElementById('restart').addEventListener('click',restart);window.addEventListener('resize',resize);
+      document.addEventListener('visibilitychange',function(){if(!document.hidden&&running&&!reduce){window.requestAnimationFrame(animate)}});
+      resize();if(!reduce){window.requestAnimationFrame(animate)}
+    }());
+  </script>
+</body>
+</html>
