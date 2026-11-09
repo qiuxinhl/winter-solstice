@@ -274,9 +274,51 @@
     @media(max-width:360px) { :root { --mobile-gutter:17px; }.header-action { font-size:10px; padding:6px 8px; }.form-grid { grid-template-columns:minmax(0,1fr); gap:0; }.solar-controls { flex-direction:column; align-items:stretch; }.solar-follow { align-self:flex-start; } }
     @media(pointer:coarse) { input,textarea,.form-field input,.form-field textarea,.solar-picker select { font-size:16px; }.header-action,.nav a,.text-link,.suggestion,.footer-settings,.letter-tab,.viewer-nav button,.solar-picker select { min-height:44px; }.icon-button,.memory-actions .icon-button { width:44px; height:44px; } }
     @media(max-width:900px) and (orientation:landscape) { dialog { max-height:calc(100dvh - 24px); }.dialog-head { position:sticky; top:0; z-index:2; background:var(--paper); }.viewer-image { max-height:42dvh; } }
+    .daily-scene { position:absolute; width:520px; max-width:110%; height:440px; top:5px; left:50%; transform:translateX(-50%); overflow:visible; }
+    .daily-scene-tag { position:absolute; top:8px; left:7%; z-index:4; font-size:11px; letter-spacing:2px; color:var(--rose-dark); }
+    .hero-art .art-caption { top:auto; bottom:0; left:0; width:100%; text-align:center; transform:none; line-height:1.8; }
+    .scene-window-frame { fill:var(--white); stroke:var(--line); stroke-width:3; }.scene-sky { fill:var(--halo); }.scene-land { fill:var(--foliage); opacity:.17; }
+    .scene-window-line { stroke:var(--white); stroke-width:9; }.scene-branch { stroke:var(--foliage); stroke-width:3; stroke-linecap:round; }
+    .scene-table-shadow { fill:var(--rose); opacity:.12; }.scene-table { fill:var(--envelope-paper); stroke:var(--envelope-edge); stroke-width:2; }.scene-table-leg { stroke:var(--envelope-edge); stroke-width:9; stroke-linecap:round; }
+    .scene-book { fill:var(--white); stroke:var(--line); stroke-width:2; }.scene-book-line { stroke:var(--rose); stroke-width:1.5; opacity:.5; stroke-linecap:round; }
+    .scene-saucer { fill:var(--white); stroke:var(--line); stroke-width:2; }.scene-cup { fill:var(--rose); stroke:var(--rose-dark); stroke-width:1.5; }.second-cup { fill:var(--foliage); stroke:var(--green); }
+    .scene-cup-handle { stroke:var(--rose); stroke-width:9; }.scene-cup-rim { fill:var(--white); stroke:var(--line); stroke-width:2; }.scene-tea { fill:var(--rose-dark); opacity:.7; }.scene-cup-mark { fill:var(--white); opacity:.8; }.scene-second-mark { stroke:var(--white); stroke-width:2; stroke-linecap:round; opacity:.8; }
+    .scene-plant-leaf { fill:var(--foliage); }.scene-pot { fill:var(--blush); stroke:var(--rose); stroke-width:1.5; }.scene-pot-top { fill:var(--envelope-edge); }
+    .tea-steam { stroke:var(--rose-dark); stroke-width:3.5; stroke-linecap:round; opacity:.6; animation:tea-rise 2.4s ease-in-out infinite; }
+    .daily-plant { transform-box:fill-box; transform-origin:50% 100%; animation:daily-sway 3.8s ease-in-out infinite; }
+    .season-detail { display:none; color:var(--rose); }
+    html[data-season="spring"] .spring-detail,html[data-season="summer"] .summer-detail,html[data-season="autumn"] .autumn-detail,html[data-season="winter"] .winter-detail { display:inline; }
+    .spring-flowers { opacity:.7; transform-box:fill-box; transform-origin:0 100%; animation:daily-sway 3s ease-in-out infinite; }.scene-butterfly { fill:var(--rose); animation:butterfly-visit 4s ease-in-out infinite; transform-box:fill-box; transform-origin:center; }
+    .scene-sun { fill:#e6b963; }.summer-rays { color:#d9a64e; transform-box:fill-box; transform-origin:center; animation:sun-turn 18s linear infinite; }.summer-breeze { stroke:var(--white); stroke-width:5; stroke-linecap:round; animation:summer-breeze 2.5s ease-in-out infinite; }
+    html[data-season="summer"] .tea-steam { display:none; }
+    .autumn-bough { opacity:.65; transform-box:fill-box; transform-origin:15% 95%; animation:daily-sway 2.7s ease-in-out infinite; }
+    .scene-snow-hill { fill:var(--white); stroke:var(--white); stroke-width:4; stroke-linejoin:round; }.window-snow { color:var(--white); animation:window-snow 3s linear infinite; }.scene-frost { stroke:var(--white); stroke-width:3; stroke-linecap:round; }
+    .hero-art .petal-field { inset:-18px -8px 20px; border-radius:35%; }
+    html[data-season] .hero-art .petal { animation-name:season-fall; animation-duration:var(--petal-duration); opacity:.65; width:var(--petal-width); height:var(--petal-height); box-shadow:none; background:var(--rose); }
+    html[data-season] .hero-art .petal::before,html[data-season] .hero-art .petal::after { content:none; }
+    html[data-season="spring"] .hero-art .petal { background:var(--rose); border-radius:80% 15% 75% 30%; }
+    html[data-season="summer"] .hero-art .petal { width:8px; height:8px; border-radius:50%; background:#e6bd64; box-shadow:0 0 14px 5px #e6bd6480; animation-name:summer-firefly; }
+    html[data-season="autumn"] .hero-art .petal { width:calc(var(--petal-width) * 1.1); height:calc(var(--petal-height) * 1.1); border-radius:80% 5% 80% 5%; background:var(--rose); }
+    html[data-season="autumn"] .hero-art .petal::after { content:""; position:absolute; width:1px; height:90%; background:var(--paper); opacity:.6; left:50%; top:7%; transform:rotate(35deg); }
+    html[data-season="winter"] .hero-art .petal { width:9px; height:9px; border-radius:50%; background:var(--white); box-shadow:0 0 3px 1px var(--line); }
+    html[data-season="winter"] .hero-art .petal:nth-child(3n) { width:16px; height:16px; background:transparent; box-shadow:none; }
+    html[data-season="winter"] .hero-art .petal:nth-child(3n)::before,html[data-season="winter"] .hero-art .petal:nth-child(3n)::after { content:""; position:absolute; inset:7px 0; background:var(--white); border-radius:2px; transform:rotate(0); }
+    html[data-season="winter"] .hero-art .petal:nth-child(3n)::after { transform:rotate(90deg); }
+    html[data-season="spring"] .hero-art .petal::before,html[data-season="spring"] .hero-art .petal::after,html[data-season="summer"] .hero-art .petal::before,html[data-season="summer"] .hero-art .petal::after { content:none; }
+    .motion-paused .hero-art *,.ambient-paused .hero-art * { animation-play-state:paused!important; }
+    @keyframes tea-rise { 0% { opacity:.15; transform:translateY(7px); } 50% { opacity:.65; } 100% { opacity:0; transform:translateY(-20px); } }
+    @keyframes daily-sway { 0%,100% { transform:rotate(-4deg); } 50% { transform:rotate(5deg); } }
+    @keyframes butterfly-visit { 0%,100% { transform:translate(-8px,5px) scaleX(.7); } 50% { transform:translate(20px,-14px) scaleX(1); } }
+    @keyframes sun-turn { to { transform:rotate(360deg); } }
+    @keyframes summer-breeze { 0%,100% { opacity:.25; transform:translateX(-8px); } 50% { opacity:.8; transform:translateX(12px); } }
+    @keyframes window-snow { from { transform:translate(0,-25px); opacity:.4; } to { transform:translate(-12px,55px); opacity:.9; } }
+    @keyframes season-fall { 0% { opacity:0; transform:translate3d(0,-20px,0) rotate(0); } 10%,80% { opacity:.7; } 50% { transform:translate3d(var(--petal-sway),240px,0) rotate(140deg); } 100% { opacity:0; transform:translate3d(0,510px,0) rotate(320deg); } }
+    @keyframes summer-firefly { 0%,100% { opacity:0; transform:translate3d(0,350px,0) scale(.6); } 30% { opacity:1; } 60% { opacity:.5; transform:translate3d(var(--petal-sway),180px,0) scale(1.4); } 95% { transform:translate3d(0,20px,0) scale(.8); } }
+    @media(max-width:650px) { .hero-art { height:clamp(290px,88vw,390px); transform:none; margin:25px 0 0; }.daily-scene { top:4px; width:100%; height:auto; max-width:440px; }.daily-scene-tag { top:0; left:4%; font-size:10px; letter-spacing:1px; }.hero-art .art-halo { top:15px; width:78%; height:auto; aspect-ratio:1; }.hero-art .orbit { top:7px; width:90%; height:auto; aspect-ratio:1; }.hero-art .art-caption { bottom:3px; font-size:12px; letter-spacing:1px; }.hero-art .petal:nth-child(n+21) { display:none; } }
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
+  <link rel="stylesheet" href="shared-space.css">
 </head>
 <body>
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
@@ -299,7 +341,7 @@
   <header class="topbar">
     <div class="wrap header-inner">
       <a class="brand" href="#home"><svg class="icon brand-mark"><use href="#heart"/></svg>我们的小世界</a>
-      <nav class="nav" aria-label="主导航"><a class="active" href="#home">写给你</a><a href="#time">我们的时光</a><a href="#photos">心动相册</a><a href="#moods">悄悄话</a><a href="#wishes">一起去做</a></nav>
+      <nav class="nav" aria-label="主导航"><a class="active" href="#home">写给你</a><a href="#time">我们的时光</a><a href="#photos">心动相册</a><a href="#moods">悄悄话</a><a href="#wishes">一起去做</a><a href="#messages">留言</a></nav>
       <button class="header-action" data-open="settingsDialog"><svg class="icon"><use href="#edit"/></svg>定制我们的小站</button>
     </div>
   </header>
@@ -316,11 +358,53 @@
       <div class="hero-art" aria-hidden="true">
         <div class="petal-field" id="petalField"></div>
         <div class="art-halo"></div><div class="orbit"></div>
-        <div class="postmark"><span id="solarStamp">心意邮局<br>只寄给你</span></div>
-        <svg class="botanical" viewBox="0 0 128 236" fill="none"><path d="M42 229C60 169 34 99 84 13M52 156C14 142 11 109 28 89M53 122C89 119 106 102 111 77M61 91C31 74 38 47 53 34M72 56C106 57 115 34 113 15" stroke="currentColor" stroke-width="2"/><path d="M28 89c-19 21-12 44 18 54-6-24-8-40-18-54Zm83-12c-26 5-40 19-42 35 26-3 41-16 42-35ZM53 34C31 51 36 71 59 80c-1-22-1-33-6-46Zm60-19C91 19 81 36 81 50c25-3 35-16 32-35Z" fill="currentColor" opacity=".35"/></svg>
-        <div class="art-letter"><div class="letter-to">亲爱的你：</div><span class="handwriting">见字如面</span><div class="paper-line"></div><div class="paper-line"></div><div class="paper-line short"></div></div>
-        <div class="envelope"><svg viewBox="0 0 275 177" fill="none"><rect x="1" y="1" width="273" height="175" rx="3" fill="#dac0ad" stroke="#c9ae98"/><path d="m2 4 135 97L273 4" fill="#e8d3bf" stroke="#c9ae98"/><path d="m2 174 102-83 34 24 34-24 101 83" fill="#e4cbb6" stroke="#d5b99f"/></svg><span class="seal-heart"><svg class="icon"><use href="#heart"/></svg></span></div>
-        <span class="spark one">✦</span><span class="spark two">✧</span><span class="spark three">✦</span><div class="art-caption" id="solarArtCaption">落笔是你，余生也是你。</div>
+        <span class="daily-scene-tag" id="dailySceneTag">两个人的日常</span>
+        <svg class="daily-scene" viewBox="0 0 520 440" fill="none">
+          <defs><clipPath id="dailyWindowClip"><rect x="177" y="40" width="244" height="214" rx="76"/></clipPath></defs>
+          <rect x="168" y="31" width="262" height="232" rx="84" class="scene-window-frame"/>
+          <g clip-path="url(#dailyWindowClip)">
+            <rect x="177" y="40" width="244" height="214" rx="76" class="scene-sky"/>
+            <path d="M164 220q60-64 125-24t154-13v87H164Z" class="scene-land"/>
+            <g class="season-detail spring-detail">
+              <path d="M181 204q19-85 95-125M206 144l-24-39m55 6 7-43" class="scene-branch"/>
+              <g class="spring-flowers" fill="currentColor"><circle cx="201" cy="147" r="12"/><circle cx="222" cy="119" r="10"/><circle cx="245" cy="98" r="13"/><circle cx="274" cy="79" r="10"/><circle cx="182" cy="106" r="9"/><circle cx="245" cy="66" r="9"/></g>
+              <path d="M323 121q-19-29-25-6 1 16 25 6Zm0 0q19-29 25-6-1 16-25 6Z" class="scene-butterfly"/>
+            </g>
+            <g class="season-detail summer-detail">
+              <g class="summer-rays" stroke="currentColor" stroke-width="5" stroke-linecap="round"><path d="M341 58V44m0 94v14m-40-54h-14m94 0h14m-82-28-10-10m66 66 10 10m-66-10-10 10m66-66 10-10"/></g>
+              <circle cx="341" cy="98" r="25" class="scene-sun"/>
+              <path d="M193 161q24-25 49 0m105 37q24-25 49 0" class="summer-breeze"/>
+            </g>
+            <g class="season-detail autumn-detail">
+              <path d="M196 235q14-89 70-158m-40 65 60 3m-45-26-23-41" class="scene-branch"/>
+              <g class="autumn-bough"><path d="M235 127q-35-2-32-40 34 4 32 40Zm-19 39q-38 3-37-34 32-2 37 34Zm22-15q2-39 44-34-3 35-44 34Zm16-43q0-38 35-44 10 33-35 44Z" fill="currentColor"/></g>
+            </g>
+            <g class="season-detail winter-detail">
+              <path d="m186 233 58-67 59 67m-77-47 18-20 18 21 11-4M289 237l51-57 55 57" class="scene-snow-hill"/>
+              <g class="window-snow" fill="currentColor"><circle cx="213" cy="77" r="4"/><circle cx="285" cy="60" r="5"/><circle cx="369" cy="93" r="5"/><circle cx="313" cy="128" r="4"/><circle cx="392" cy="162" r="4"/><circle cx="242" cy="121" r="3"/></g>
+              <path d="M345 57v30m-13-23 26 16m-26 0 26-16" class="scene-frost"/>
+            </g>
+          </g>
+          <path d="M299 42v211m-121-92h242" class="scene-window-line"/>
+          <ellipse cx="272" cy="360" rx="212" ry="28" class="scene-table-shadow"/>
+          <path d="m107 350-9 48m321-48 9 48" class="scene-table-leg"/>
+          <ellipse cx="265" cy="338" rx="216" ry="40" class="scene-table"/>
+          <g transform="rotate(-9 153 315)"><path d="M78 292q37-13 73 2 35-15 72-2v52q-35-12-72 1-36-13-73-1Z" class="scene-book"/><path d="M151 294v51m-61-39q24-5 48 2m-48 10q24-5 48 2m28-12q22-6 44-2m-44 14q22-6 44-2" class="scene-book-line"/></g>
+          <ellipse cx="262" cy="327" rx="49" ry="12" class="scene-saucer"/>
+          <path d="M286 275h12c23 0 23 29 0 29h-9" class="scene-cup-handle"/>
+          <path d="M229 268h62v40q0 24-31 24t-31-24Z" class="scene-cup first-cup"/>
+          <ellipse cx="260" cy="268" rx="31" ry="9" class="scene-cup-rim"/><ellipse cx="260" cy="269" rx="24" ry="5" class="scene-tea"/>
+          <path d="M252 303q-16-13-10-19 6-6 10 1 5-7 11-1 6 6-11 19Z" class="scene-cup-mark"/>
+          <ellipse cx="351" cy="344" rx="46" ry="11" class="scene-saucer"/>
+          <path d="M373 295h12c21 0 21 26 0 26h-8" class="scene-cup-handle"/>
+          <path d="M321 288h57v36q0 23-28 23t-29-23Z" class="scene-cup second-cup"/>
+          <ellipse cx="349" cy="288" rx="28" ry="8" class="scene-cup-rim"/><ellipse cx="349" cy="289" rx="21" ry="4" class="scene-tea"/>
+          <path d="M344 308v19m-5-10h10" class="scene-second-mark"/>
+          <g class="tea-steam"><path d="M249 246c-16-15 15-23 0-40m20 41c-14-16 15-25 1-43m68 63c-15-15 13-22 0-37m20 37c-13-13 14-21 0-36"/></g>
+          <g class="daily-plant"><path d="M424 284q-6-60 13-94m-10 63-21-23m23 5 24-19" class="scene-branch"/><path d="M406 230q-24-4-18-24 24 0 18 24Zm27-6q-3-25 21-29 7 23-21 29Zm-7 31q-26-1-24-22 25-3 24 22Z" class="scene-plant-leaf"/><path d="M405 276h42l-6 39h-30Z" class="scene-pot"/><ellipse cx="426" cy="276" rx="21" ry="5" class="scene-pot-top"/></g>
+          <path d="m185 365 36-6m-37 10 36-6" class="scene-book-line"/>
+        </svg>
+        <div class="art-caption" id="solarArtCaption">一起喝杯热茶，聊聊今天。</div>
       </div>
     </section>
     <div class="intro-strip"><div class="couple"><span class="avatar" id="myAvatar">我</span><svg class="icon couple-heart"><use href="#heart"/></svg><span class="avatar rose" id="partnerAvatar">邬</span><span class="couple-names"><span id="myName">我</span> &amp; <span data-partner>邬小姐</span></span></div><span class="strip-note">两个人，一些小事，很多个明天。</span></div>
@@ -351,20 +435,32 @@
       <div class="wishes-layout"><div><form class="wish-entry" id="wishForm"><input id="wishInput" aria-label="新的心愿" placeholder="写下一件想和她一起做的事…" maxlength="80" required><button class="primary" type="submit">记下来</button></form><ul class="wish-list" id="wishList"></ul><p class="suggestions-label">还没想好？从一件小事开始：</p><div class="suggestions"><button class="suggestion" data-wish="一起看一次日落">＋ 一起看日落</button><button class="suggestion" data-wish="一起做一顿晚饭">＋ 一起做晚饭</button><button class="suggestion" data-wish="一起拍一张喜欢的合照">＋ 拍一张合照</button></div></div><aside class="wish-aside"><svg class="icon"><use href="#heart"/></svg><h3>浪漫不止鲜花，<br>还有一起虚度的时光。</h3><p>愿我们的以后，<br>藏在每一个平凡又可爱的日子里。</p></aside></div>
     </section>
     <section class="section" id="memories"><div class="section-header"><div><span class="section-number">07 / 把小日子认真存好</span><h2>我们的小事<span class="memory-count" id="memoryCount"></span></h2><p class="section-desc">有些时刻很小，却想记很久。</p></div><button class="text-link" data-open="memoryDialog"><svg class="icon"><use href="#plus"/></svg>记一件小事</button></div><ol class="memory-list" id="memoryList"></ol></section>
+    <section class="section" id="messages">
+      <div class="section-header"><div><span class="section-number">08 / 有话，只想对你说</span><h2>给你留句话</h2><p class="section-desc">今天的小开心、突然的想念，都可以写在这里。</p></div><button class="text-link" data-open="sharedSpaceDialog">连接共享空间<svg class="icon"><use href="#arrow"/></svg></button></div>
+      <div class="shared-status" id="sharedStatus" role="status">本机留言 · 连接共享空间后，两部手机才能互相看到。</div>
+      <div class="message-layout"><form class="message-compose" id="messageForm"><label class="form-field">这次是谁在写<select id="messageAuthor"><option value="me">我</option><option value="partner">她</option></select></label><label class="form-field">想对你说<textarea id="messageText" maxlength="1000" placeholder="比如：今天路过那家小店，又想起你了。" required></textarea></label><div class="message-compose-bottom"><span id="messageCounter">0 / 1000</span><button class="primary" id="sendMessage" type="submit">保存到本机</button></div></form><div class="message-board"><div class="message-board-heading"><span>把想念，一句句收好</span><button class="text-link" id="refreshMessages">刷新留言</button></div><ol class="message-list" id="messageList"></ol></div></div>
+    </section>
+    <section class="section" id="sharedAlbum">
+      <div class="section-header"><div><span class="section-number">09 / 两个人的照片与影片</span><h2>把日常，存成回忆</h2><p class="section-desc">照片保留原文件，视频可以直接在这里播放。</p></div><button class="primary" id="uploadSharedMedia" disabled><svg class="icon"><use href="#plus"/></svg>上传照片或视频</button></div>
+      <div class="shared-storage"><span id="sharedStorageText">共享相册尚未连接，暂不能上传。</span><button class="text-link" data-open="sharedSpaceDialog">连接我们的小屋<svg class="icon"><use href="#arrow"/></svg></button></div>
+      <div class="shared-upload" id="sharedUpload" hidden><div><span id="sharedUploadLabel"></span><button class="text-link" id="cancelSharedUpload">取消上传</button></div><progress id="sharedUploadProgress" value="0" max="100" aria-label="照片视频上传进度"></progress><span id="sharedUploadPercent" role="status"></span></div>
+      <div class="shared-media-grid" id="sharedMediaGrid"><p class="shared-empty">连接云端空间后，你们上传的照片和视频会出现在这里。容量以实际开通的空间为准。</p></div><input id="sharedMediaInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,video/mp4,video/webm,video/quicktime,video/x-matroska" multiple hidden>
+    </section>
     <div class="heart-corner"><button class="heart-button" id="heartButton" aria-label="点一下，收下一句心意"><svg class="icon"><use href="#heart"/></svg></button><p id="heartMessage">轻轻点一下，收下一点喜欢。</p></div>
-    <footer class="site-footer"><span>为<span data-partner>邬小姐</span>认真留下一点心意。</span><span>内容保存在当前浏览器，照片仅在本机保存。</span><button class="footer-settings motion-toggle" id="motionToggle" aria-pressed="false"><span class="motion-dot" aria-hidden="true"></span><span id="motionLabel">暂停动效</span></button><button class="footer-settings" data-open="settingsDialog">小站设置与备份</button></footer>
+    <footer class="site-footer"><span>为<span data-partner>邬小姐</span>认真留下一点心意。</span><span>本机内容存在当前浏览器；共享内容以小屋连接状态为准。</span><button class="footer-settings motion-toggle" id="motionToggle" aria-pressed="false"><span class="motion-dot" aria-hidden="true"></span><span id="motionLabel">暂停动效</span></button><button class="footer-settings" data-open="settingsDialog">小站设置与备份</button></footer>
   </main>
-  <dialog id="settingsDialog" aria-labelledby="settingsTitle"><div class="dialog-head"><h2 id="settingsTitle">写下我们的故事</h2><button class="icon-button" data-close aria-label="关闭设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><form id="settingsForm"><div class="form-grid"><label class="form-field">你的称呼<input id="nameInput" maxlength="12" autocomplete="off" required></label><label class="form-field">她的称呼<input id="partnerInput" maxlength="12" autocomplete="off" required></label></div><label class="form-field">我们在一起的第一天<input id="dateInput" type="date"></label><p class="form-help">还没决定从哪天开始？可以先留空。称呼和日期随时都能再改。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>再想想</button><button class="primary" type="submit">保存这份心意</button></div></form><div class="backup-tools"><button id="exportBackup">保存一份备份</button><button id="importBackup">从备份恢复</button></div><p class="form-help" style="margin:10px 0 0">备份包含称呼、日期、照片、心愿和记事。换浏览器或换电脑时，可以用它带走我们的记录。</p><input id="backupInput" type="file" accept="application/json,.json" hidden></div></dialog>
+  <dialog id="settingsDialog" aria-labelledby="settingsTitle"><div class="dialog-head"><h2 id="settingsTitle">写下我们的故事</h2><button class="icon-button" data-close aria-label="关闭设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><form id="settingsForm"><div class="form-grid"><label class="form-field">你的称呼<input id="nameInput" maxlength="12" autocomplete="off" required></label><label class="form-field">她的称呼<input id="partnerInput" maxlength="12" autocomplete="off" required></label></div><label class="form-field">我们在一起的第一天<input id="dateInput" type="date"></label><p class="form-help">还没决定从哪天开始？可以先留空。称呼和日期随时都能再改。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>再想想</button><button class="primary" type="submit">保存这份心意</button></div></form><div class="backup-tools"><button id="exportBackup">保存一份备份</button><button id="importBackup">从备份恢复</button></div><p class="form-help" style="margin:10px 0 0">备份包含称呼、日期、本机照片、心愿、记事和本机留言，不含云端照片视频。换设备时，可以用它带走本机记录。</p><input id="backupInput" type="file" accept="application/json,.json" hidden></div></dialog>
   <dialog id="memoryDialog" aria-labelledby="memoryDialogTitle"><div class="dialog-head"><h2 id="memoryDialogTitle">记下一件小事</h2><button class="icon-button" data-close aria-label="关闭记事"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><form id="memoryForm"><label class="form-field">给这一天起个名字<input id="memoryTitleInput" maxlength="30" placeholder="比如：今天一起走了好长一段路" required></label><label class="form-field">发生在哪一天<input id="memoryDateInput" type="date" required></label><label class="form-field">还想记住什么<textarea id="memoryTextInput" maxlength="220" placeholder="天气、说过的话，或一个让你心动的小细节…"></textarea></label><p class="form-help">只记下你们真实发生的小事，每一件都可以慢慢补充。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>先不写了</button><button class="primary" type="submit">把这一天存好</button></div></form></div></dialog>
   <dialog id="letterDialog" aria-labelledby="letterTitle"><div class="dialog-head"><h2 id="letterTitle">一封写给你的信</h2><button class="icon-button" data-close aria-label="合上信"><svg class="icon"><use href="#close"/></svg></button></div><div class="letter-tabs" role="tablist" aria-label="信件版本"><button class="letter-tab" id="originalTab" role="tab" aria-selected="true" aria-controls="letterContent" data-letter="original">文档原信</button><button class="letter-tab" id="winterTab" role="tab" aria-selected="false" aria-controls="letterContent" data-letter="winter" tabindex="-1">立冬寄语</button></div><article class="letter-full" id="letterContent" role="tabpanel" aria-labelledby="originalTab"></article></dialog>
   <dialog id="photoDialog" aria-labelledby="photoTitle"><div class="dialog-head"><h2 id="photoTitle">收藏这一刻</h2><button class="icon-button" data-close aria-label="关闭照片"><svg class="icon"><use href="#close"/></svg></button></div><img class="viewer-image" id="viewerImage" alt="收藏的照片"><div class="dialog-body"><div class="viewer-nav"><button class="secondary" id="previousPhoto">上一张</button><span id="photoPosition"></span><button class="secondary" id="nextPhoto">下一张</button></div><form id="captionForm"><label class="form-field">给这一刻写一句话<input id="captionInput" maxlength="60" placeholder="比如：想把这一刻，一直记住。"></label><div class="dialog-actions"><button class="secondary danger" type="button" id="deletePhoto">移出相册</button><button class="primary" type="submit">保存这一刻</button></div></form></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">连接两个人的小屋</h2><button class="icon-button" data-close aria-label="关闭共享空间设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help">连接同一个云端空间后，你们就能互相留言、上传和查看照片视频。口令仅保存在当前浏览器，请只告诉对方。</p><form id="sharedSpaceForm"><label class="form-field">空间地址<input id="sharedSpaceAddress" type="url" placeholder="https://你们的空间地址" autocomplete="url" required></label><label class="form-field">小屋口令<input id="sharedSpaceSecret" type="password" minlength="32" maxlength="128" autocomplete="off" required></label><p class="form-help">尚未开通云端空间时，可以先写本机留言。这里不会自动开通或购买存储空间。</p><div class="dialog-actions"><button class="secondary" type="button" id="disconnectSharedSpace">使用本机留言</button><button class="primary" type="submit" id="connectSharedSpace">连接小屋</button></div></form></div></dialog>
   <script src="vendor/lunar.js"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
     const maxPhotos = 12;
-    const defaultState = { version:1, me:'我', partner:'邬小姐', startDate:'', photos:[], wishes:[], memories:[] };
+    const defaultState = { version:1, me:'我', partner:'邬小姐', startDate:'', photos:[], wishes:[], memories:[], messages:[] };
     let state = structuredClone(defaultState);
     let selectedPhotoId = null;
     let toastTimer;
@@ -480,7 +576,7 @@
     function setupMotion() {
       try { motionPaused = localStorage.getItem(storageKey + '-motion-paused') === 'true'; } catch (error) {}
       const field = byId('petalField');
-      const petals = [{left:12,width:6,duration:16,delay:-3,sway:32},{left:29,width:5,duration:19,delay:-13,sway:-24},{left:45,width:7,duration:18,delay:-8,sway:35},{left:62,width:5,duration:22,delay:-16,sway:-32},{left:76,width:6,duration:17,delay:-6,sway:22},{left:88,width:4,duration:21,delay:-18,sway:-28}];
+      const petals = Array.from({length:28},(_,index) => ({left:3 + (index * 37 % 94),width:11 + index % 5 * 2,duration:5 + index % 7 * .6,delay:-(index * 1.37 % 9),sway:index % 2 ? -45 - index : 35 + index}));
       petals.forEach(settings => {
         const petal = document.createElement('span');
         petal.className = 'petal';
@@ -553,7 +649,14 @@
         memoryIds.add(memory.id);
         return { id:memory.id, date:memory.date, title:memory.title, text:memory.text };
       });
-      return { version:1, me:value.me.trim(), partner:value.partner.trim(), startDate:value.startDate, photos, wishes, memories };
+      if (value.messages !== undefined && (!Array.isArray(value.messages) || value.messages.length > 500)) throw new Error('备份里的留言格式不正确。');
+      const messageIds = new Set();
+      const messages = (value.messages || []).map(message => {
+        if (!message || typeof message.id !== 'string' || messageIds.has(message.id) || !['me','partner'].includes(message.author) || typeof message.text !== 'string' || !message.text.trim() || message.text.length > 1000 || typeof message.createdAt !== 'string' || !Number.isFinite(Date.parse(message.createdAt))) throw new Error('备份里的留言格式不正确。');
+        messageIds.add(message.id);
+        return {id:message.id,author:message.author,text:message.text,createdAt:message.createdAt};
+      });
+      return { version:1, me:value.me.trim(), partner:value.partner.trim(), startDate:value.startDate, photos, wishes, memories, messages };
     }
 
     function save(nextState, message) {
@@ -715,8 +818,8 @@
       byId('solarColorName').textContent = '本节气配色 · ' + theme.colorName;
       byId('heroTermIcon').setAttribute('href','#' + theme.icon);
       byId('solarHeroNote').textContent = theme.tag;
-      byId('solarArtCaption').textContent = theme.season === 'spring' ? '春风十里，落笔是你。' : theme.season === 'summer' ? '晚风有信，想念是你。' : theme.season === 'autumn' ? '秋风有声，心动是你。' : '冬日有暖，往后是你。';
-      byId('solarStamp').replaceChildren(document.createTextNode(theme.name + '来信'),document.createElement('br'),document.createTextNode('只寄给你'));
+      byId('solarArtCaption').textContent = theme.season === 'spring' ? '窗边有花，身边有你。' : theme.season === 'summer' ? '冰饮留一杯，晚风一起吹。' : theme.season === 'autumn' ? '泡杯茶，聊聊今天的小事。' : '热茶冒着气，等你坐一会儿。';
+      byId('dailySceneTag').textContent = theme.name + ' · 两个人的日常';
     }
 
     function updateSolarTheme(animated = false) {
@@ -833,6 +936,7 @@
       renderGallery();
       renderWishes();
       renderMemories();
+      window.dispatchEvent(new Event('our-world-state'));
     }
 
     function openDialog(identifier) {
@@ -1014,7 +1118,7 @@
       if (file.size > 16 * 1024 * 1024) return toast('备份文件过大，请选择本小站导出的备份。');
       try {
         const imported = normalizeState(JSON.parse(await file.text()));
-        if (!confirm('恢复后，当前浏览器里的称呼、日期、照片和心愿会替换为备份内容。确定恢复吗？')) return;
+        if (!confirm('恢复后，当前浏览器里的称呼、日期、本机照片、心愿、记事和本机留言会替换为备份内容。确定恢复吗？')) return;
         if (save(imported,'我们的记录，已经带回来了。')) byId('settingsDialog').close();
       } catch (error) { toast('无法恢复这份备份，请选择本小站导出的完整文件。'); }
     });
@@ -1074,7 +1178,7 @@
         animateElement(item, [{ opacity:.3, transform:'translateY(8px)' }, { opacity:1, transform:'translateY(0)' }]);
       }
     });
-    const sections = ['home','time','photos','moods','wishes'].map(byId);
+    const sections = ['home','time','photos','moods','wishes','messages'].map(byId);
     let scrollPending = false;
     function updateNavigation() {
       const current = sections.filter(section => section.getBoundingClientRect().top <= 180).pop() || sections[0];
@@ -1096,5 +1200,6 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
+  <script src="shared-space.js"></script>
 </body>
 </html>

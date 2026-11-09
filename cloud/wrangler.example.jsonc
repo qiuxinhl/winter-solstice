@@ -1,0 +1,13 @@
+{
+  "name": "our-little-world-room",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-10",
+  "workers_dev": true,
+  "triggers": {"crons":["0 * * * *"]},
+  "vars": {
+    "ALLOWED_ORIGIN": "https://qiuxinhl.github.io",
+    "MAX_STORAGE_BYTES": "200000000000"
+  },
+  "d1_databases": [{"binding":"DB","database_name":"our-little-world","database_id":"REPLACE_WITH_CREATED_DATABASE_ID"}],
+  "r2_buckets": [{"binding":"PHOTOS","bucket_name":"our-little-world-private"}]
+}
