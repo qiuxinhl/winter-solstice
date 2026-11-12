@@ -39,12 +39,13 @@
     }
     async function request(path, options = {}, retry = true) {
       const current = await login();
+      const {binary,...fetchOptions} = options;
       const response = await fetch(address + path, {
-        ...options,headers:{apikey:target.anonKey,Authorization:'Bearer ' + current.access_token,...(options.body ? {'Content-Type':'application/json'} : {}),...options.headers},
+        ...fetchOptions,headers:{apikey:target.anonKey,Authorization:'Bearer ' + current.access_token,...(options.body ? {'Content-Type':'application/json'} : {}),...options.headers},
         signal:options.signal || AbortSignal.timeout(30000),credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store'
       });
       if (response.status === 401 && retry) { session.expires_at = 0; await login(); return request(path,options,false); }
-      const data = await responseData(response);
+      const data = binary && response.ok ? await response.blob() : await responseData(response);
       if (!response.ok) throw problem(response,data);
       return data;
     }
@@ -126,6 +127,13 @@
         request.send(blob);
       });
     }
-    const result = {api,uploadPart}; adapters.set(target,result); return result;
+    async function imagePreview(id,signal) {
+      const file = await entry(id);
+      const blob = await request('/storage/v1/object/authenticated/' + bucket + '/' + file.path,{binary:true,signal});
+      if (!blob.size || !blob.type.startsWith('image/')) throw new Error('图片内容未完整读取，请重新加载。');
+      const url = URL.createObjectURL(blob);
+      return {url,expiresAt:Infinity,revoke:() => URL.revokeObjectURL(url)};
+    }
+    const result = {api,uploadPart,imagePreview}; adapters.set(target,result); return result;
   };
 })();

@@ -17,6 +17,7 @@
   let localOnly = false;
   let localPhotosChecked = false;
   const previewLoaders = new Map();
+  let imageObserver = null;
   const by = id => document.getElementById(id);
   const bytes = size => size >= 1e9 ? (size / 1e9).toFixed(2) + ' GB' : size >= 1e6 ? (size / 1e6).toFixed(1) + ' MB' : (size / 1000).toFixed(1) + ' KB';
   function localNames() {
@@ -132,6 +133,9 @@
     return api('/media/' + encodeURIComponent(id) + '/ticket',{method:'POST',body:JSON.stringify({download})});
   }
   function renderMedia() {
+    imageObserver?.disconnect();
+    imageObserver = null;
+    previewLoaders.forEach(reload => reload.dispose?.());
     previewLoaders.clear();
     const grid = by('sharedMediaGrid'); grid.replaceChildren();
     if (!media.length) {
@@ -145,13 +149,14 @@
       const isVideo = entry.type.startsWith('video/');
       const preview = document.createElement(isVideo ? 'video' : 'img');
       if (isVideo) { preview.controls = true; preview.preload = 'none'; preview.playsInline = true; }
-      else { preview.loading = 'lazy'; preview.alt = entry.name; }
+      else { preview.loading = 'eager'; preview.alt = entry.name; }
       preview.referrerPolicy = 'no-referrer';
       const name = document.createElement('p'); name.className = 'shared-media-name'; name.textContent = entry.name;
       const info = document.createElement('p'); info.className = 'shared-media-info'; info.textContent = (isVideo ? '视频 · ' : '照片 · ') + bytes(entry.size);
       const baseInfo = info.textContent;
       const retry = document.createElement('button'); retry.className = 'text-link'; retry.textContent = '重新加载'; retry.hidden = true;
       let loading = false, attempts = 0, expiresAt = 0, failed = false;
+      let releasePreview = null, previewController = null;
       const current = () => revision === connectionRevision && card.isConnected;
       function showFailure() {
         if (!current()) return;
@@ -161,14 +166,23 @@
       async function loadPreview() {
         if (loading || !current()) return;
         loading = true; retry.hidden = true; failed = false; info.textContent = baseInfo;
+        previewController = new AbortController();
         try {
-          const ticket = await mediaTicket(entry.id);
-          if (!current()) return;
+          const ticket = !isVideo && connection.provider === 'supabase'
+            ? await window.getSupabaseRoom(connection).imagePreview(entry.id,previewController.signal)
+            : await mediaTicket(entry.id);
+          if (!current()) { ticket.revoke?.(); return; }
           const url = new URL(ticket.url);
-          if (attempts) url.searchParams.set('_refresh',String(Date.now()));
+          if (attempts && !ticket.revoke) url.searchParams.set('_refresh',String(Date.now()));
+          releasePreview?.(); releasePreview = ticket.revoke || null;
           expiresAt = ticket.expiresAt || Date.now()+3600000;
           preview.src = url.href;
-        } catch { showFailure(); }
+        } catch {
+          if (current()) {
+            if (!attempts) { attempts++; setTimeout(() => loadPreview(),400); }
+            else showFailure();
+          }
+        }
         finally { loading = false; }
       }
       retry.addEventListener('click',() => { attempts++; loadPreview(); });
@@ -192,8 +206,16 @@
         catch (error) { toast(error.message); remove.disabled = false; }
       });
       actions.append(retry,download,remove); card.append(preview,name,info,actions); grid.append(card);
-      previewLoaders.set(entry.id,() => { if (failed || (Date.now()>=expiresAt && (!isVideo || preview.paused))) { attempts++; loadPreview(); } });
-      loadPreview();
+      const reload = () => { if (failed || (expiresAt && Date.now()>=expiresAt && (!isVideo || preview.paused))) { attempts++; loadPreview(); } };
+      reload.dispose = () => { previewController?.abort(); releasePreview?.(); };
+      previewLoaders.set(entry.id,reload);
+      if (!isVideo && typeof IntersectionObserver !== 'undefined') {
+        if (!imageObserver) imageObserver = new IntersectionObserver(entries => {
+          for (const item of entries) if (item.isIntersecting) { imageObserver.unobserve(item.target); item.target.loadImage?.(); }
+        },{rootMargin:'400px'});
+        card.loadImage = loadPreview;
+        imageObserver.observe(card);
+      } else loadPreview();
     });
   }
   async function refresh(forceMedia = false) {
@@ -216,7 +238,10 @@
         localPhotosChecked = true;
         setTimeout(() => { if (connection === target && connected && !uploadController) migrateLocalPhotos(); },0);
       }
-    } finally { refreshBusy = false; displayMode(); }
+    } finally {
+      refreshBusy = false; displayMode();
+      if (connection && target !== connection) refresh().catch(() => {});
+    }
   }
   by('messageText').addEventListener('input',() => { by('messageCounter').textContent = by('messageText').value.length + ' / 1000'; });
   by('messageForm').addEventListener('submit',async event => {
@@ -248,7 +273,20 @@
     by('sharedSpaceAddress').value = cloud?.address || connection?.address || '';
     by('sharedSpaceSecret').value = connection?.secret || '';
     by('sharedSpaceAddressField').hidden = Boolean(cloud?.address);
-    by('sharedConnectionHelp').textContent = cloud?.address ? '免费小屋已开通。输入你们的小屋口令，或用对方发来的邀请链接进入。' : '云端尚未开通，当前只能保存本机留言。';
+    by('sharedConnectionHelp').textContent = cloud?.address ? (connected ? '这台设备已记住小屋，下次打开会自动连接。可在相册复制两人专属链接给对方。' : '粘贴两人专属链接即可进入，也支持原来的小屋口令。电脑和微信各连接一次后，会在当前浏览器自动记住。') : '云端尚未开通，当前只能保存本机留言。';
+  }
+  function readInvite(hash) {
+    let invite;
+    if (hash.startsWith('#key=')) {
+      if (cloud?.provider !== 'supabase') throw new Error('小屋暂未配置。');
+      invite = {...cloud,secret:decodeURIComponent(hash.slice(5))};
+    } else if (hash.startsWith('#room=')) {
+      const encoded = hash.slice(6).replace(/-/g,'+').replace(/_/g,'/');
+      if (encoded.length > 6000) throw new Error('邀请链接过长。');
+      invite = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encoded),letter=>letter.charCodeAt(0))));
+    } else throw new Error('邀请链接不正确。');
+    if (invite.provider !== 'supabase' || !/^https:\/\/[a-z]{20}\.supabase\.co$/.test(invite.address) || typeof invite.secret !== 'string' || invite.secret.length < 32 || invite.secret.length > 128 || (cloud?.address && invite.address !== cloud.address)) throw new Error('邀请链接不正确。');
+    return invite;
   }
   document.querySelectorAll('[data-open="sharedSpaceDialog"]').forEach(button => button.addEventListener('click',connectionFields));
   by('sharedSpaceForm').addEventListener('submit',async event => {
@@ -256,7 +294,14 @@
     if (uploadController) return;
     const url = new URL(by('sharedSpaceAddress').value.trim());
     if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) return toast('请填写有效的 HTTPS 空间地址。');
-    const target = {...(cloud || {}),address:url.href.replace(/\/$/,''),secret:by('sharedSpaceSecret').value.trim()};
+    let target = {...(cloud || {}),address:url.href.replace(/\/$/,''),secret:by('sharedSpaceSecret').value.trim()};
+    if (/^https?:\/\//i.test(target.secret)) {
+      try {
+        const pasted = new URL(target.secret);
+        if (!((pasted.origin === location.origin && pasted.pathname === location.pathname) || (pasted.origin === 'https://qiuxinhl.github.io' && pasted.pathname === '/winter-solstice/'))) throw new Error();
+        target = readInvite(pasted.hash);
+      } catch { return toast('请粘贴从小屋里复制的两人专属链接。'); }
+    }
     if (target.secret.length < 32 || target.secret.length > 128) return toast('小屋口令应为32至128位。');
     by('connectSharedSpace').disabled = true;
     try {
@@ -264,7 +309,7 @@
       localStorage.setItem(connectionKey,JSON.stringify(target)); connection = target; connectionRevision++;
       localOnly = false; localPhotosChecked = false;
       connected = false; sharedMessages = []; media = []; await refresh();
-      by('sharedSpaceDialog').close(); toast('已连接两个人的小屋。');
+      by('sharedSpaceSecret').value = ''; by('sharedSpaceDialog').close(); toast('已记住这间小屋，下次会自动连接。');
     } catch (error) { toast(error.message); }
     finally { displayMode(); }
   });
@@ -359,29 +404,39 @@
     } catch (error) { toast(error.message); }
     finally { migrationBusy = false; displayMode(); }
   });
-  async function copyInvite() {
+  async function copyInvite(event) {
     if (!connected) return;
     const data = {address:connection.address,secret:connection.secret,provider:connection.provider,anonKey:connection.anonKey,email:connection.email,bucket:connection.bucket};
     const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    const link = location.origin + location.pathname + '?v=20261112-photo-sync#room=' + encoded;
-    try { await navigator.clipboard.writeText(link); toast('邀请链接已复制，只发给对方即可。'); }
-    catch { by('roomInvite').value = link; by('roomInviteField').hidden = false; by('roomInvite').focus(); by('roomInvite').select(); }
+    const fragment = connection.provider === 'supabase' && cloud?.address === connection.address ? '#key=' + encodeURIComponent(connection.secret) : '#room=' + encoded;
+    const link = location.origin + location.pathname + '?v=20261112-private-room' + fragment;
+    try { await navigator.clipboard.writeText(link); toast('两人专属链接已复制，对方首次打开即可自动记住小屋。'); }
+    catch {
+      if (event?.currentTarget?.id === 'copyAlbumInvite') by('photoSharedTools').after(by('roomInviteField'));
+      by('roomInvite').value = link; by('roomInviteField').hidden = false; by('roomInvite').focus(); by('roomInvite').select();
+      toast('专属链接已显示，请长按或选中复制。');
+    }
   }
   by('copyRoomInvite').addEventListener('click',copyInvite);
   by('copyAlbumInvite').addEventListener('click',copyInvite);
   window.addEventListener('our-world-state',() => { renderMessages(); displayMode(); saveProfile(); });
   window.addEventListener('beforeunload',event => { if (uploadController) { event.preventDefault(); event.returnValue = ''; } });
   try { const saved = JSON.parse(localStorage.getItem(connectionKey)); if (saved && /^https:\/\//.test(saved.address) && typeof saved.secret === 'string') connection = saved; } catch (error) {}
-  try {
-    if (location.hash.startsWith('#room=')) {
-      const encoded = location.hash.slice(6).replace(/-/g,'+').replace(/_/g,'/');
-      if (encoded.length > 6000) throw new Error('邀请链接过长。');
-      const invite = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encoded),letter=>letter.charCodeAt(0))));
-      if (invite.provider !== 'supabase' || !/^https:\/\/[a-z]{20}\.supabase\.co$/.test(invite.address) || typeof invite.secret !== 'string' || invite.secret.length < 32 || (cloud?.address && invite.address !== cloud.address)) throw new Error('邀请链接不正确。');
+  function consumeInvite() {
+    try {
+      if (!location.hash.startsWith('#room=') && !location.hash.startsWith('#key=')) return false;
+      const invite = readInvite(location.hash);
       connection = invite; localStorage.setItem(connectionKey,JSON.stringify(invite));
-      history.replaceState(null,'',location.pathname + location.search + '#messages');
-    }
-  } catch (error) { toast('邀请链接无法识别，请使用对方重新复制的链接。'); }
+      connectionRevision++; connected = false; localOnly = false; localPhotosChecked = false;
+      remoteProfile = null; pendingProfile = null;
+      history.replaceState(null,'',location.pathname + location.search + '#photos');
+      return true;
+    } catch { toast('邀请链接无法识别，请使用对方重新复制的链接。'); return false; }
+  }
+  consumeInvite();
+  window.addEventListener('hashchange',() => {
+    if (consumeInvite()) { displayMode(); refresh().catch(() => { status('暂时无法连接小屋，请检查网络后重试。'); }); }
+  });
   window.ourSharedSpace = {
     hasCloud:() => Boolean(cloud?.address || connection),
     chooseMedia:() => { if (connected) by('sharedMediaInput').click(); else { connectionFields(); openDialog('sharedSpaceDialog'); } }
