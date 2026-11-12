@@ -1,3 +1,5 @@
+[hidden] { display:none!important; }
+.photo-shared-tools { display:flex; align-items:center; flex-wrap:wrap; gap:10px 20px; margin:0 0 18px; }.photo-shared-tools:empty { display:none; }.photo-shared-tools .secondary { font-size:12px; }
 .shared-status,.shared-storage { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:17px 21px; background:var(--surface-alt); border:1px solid var(--line); border-radius:7px; color:var(--rose-dark); font-size:12px; line-height:1.9; margin-bottom:22px; }
 .message-layout { display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.2fr); gap:28px; }.message-compose { border:1px solid var(--line); border-radius:8px; padding:26px; background:var(--surface); align-self:start; }
 .message-compose select { display:block; width:100%; min-height:44px; margin-top:9px; border:1px solid var(--line); background:var(--white); color:var(--ink); border-radius:5px; padding:10px 12px; }.message-compose textarea { min-height:160px; }
