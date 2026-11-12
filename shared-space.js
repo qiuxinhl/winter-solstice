@@ -80,6 +80,7 @@
     by('disconnectSharedSpace').disabled = Boolean(uploadController);
     by('connectSharedSpace').disabled = Boolean(uploadController) || loginBusy;
     loginMode();
+    window.dispatchEvent(new CustomEvent('our-world-connection',{detail:{connected,identity,revision:connectionRevision}}));
     by('copyAlbumInvite').hidden = !connected;
     by('albumConnection').textContent = connected ? '小屋设置' : '连接小屋';
     by('sharedMediaGrid').hidden = !connected;
@@ -440,7 +441,7 @@
     finally { migrationBusy = false; displayMode(); }
   });
   async function copyInvite() {
-    const link=location.origin+location.pathname+'?v=20261112-personal';
+    const link=location.origin+location.pathname+'?v=20261112-mailbox';
     try { await navigator.clipboard.writeText(link);toast('小屋网址已复制，对方使用自己的账号登录即可。'); }
     catch { by('roomInvite').value=link;by('roomInviteField').hidden=false;by('roomInvite').focus();by('roomInvite').select();toast('网址已显示，可以长按复制。'); }
   }
@@ -464,6 +465,9 @@
   }
   window.addEventListener('our-world-session',()=>{if(connection&&connected)persistLogin();});
   window.ourSharedSpace = {
+    isConnected:() => connected,
+    identity:() => identity,
+    request:(path,options) => { if (!connected) return Promise.reject(new Error('请先登录小屋。')); return api(path,options); },
     hasCloud:() => Boolean(cloud?.address || connection),
     chooseMedia:() => { if (uploadController || migrationBusy) return; if (connected) by('sharedMediaInput').click(); else { connectionFields(); openDialog('sharedSpaceDialog'); } }
   };

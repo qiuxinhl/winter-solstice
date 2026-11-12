@@ -1,0 +1,93 @@
+/* The same seasonal palette follows the clock, mailbox and atmosphere. */
+.clock {display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;width:100%;max-width:430px}
+.clock div {min-width:0}
+.clock strong {color:var(--rose-dark);font-family:var(--sans);font-size:28px}
+.clock small {font-size:13px;color:var(--muted)}
+.clock-area {padding:30px 22px}
+.form-field select {width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--white);color:var(--ink);font:inherit;min-height:46px}
+[hidden] {display:none!important}
+.anniversary-countdown {color:var(--rose-dark);font-variant-numeric:tabular-nums;line-height:1.8;font-size:13px;overflow-wrap:anywhere}
+.mail-badge {display:inline-block;vertical-align:middle;padding:5px 10px;border-radius:20px;background:var(--rose);color:var(--white);font-size:12px;letter-spacing:0}
+.mail-toolbar {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.mail-tabs {display:flex;gap:6px;padding:5px;border:1px solid var(--line);border-radius:30px;background:var(--surface)}
+.mail-tabs button {border:0;border-radius:24px;padding:10px 19px;background:transparent;color:var(--muted);font:inherit;min-height:44px;font-size:14px}
+.mail-tabs [aria-selected="true"] {background:var(--rose);color:var(--white);box-shadow:0 4px 10px color-mix(in srgb,var(--rose) 18%,transparent)}
+.mail-status {color:var(--muted);font-size:13px;line-height:1.9;margin:12px 0 22px}
+.mail-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.mail-envelope {--mail-color:var(--blush);position:relative;isolation:isolate;overflow:hidden;border:1px solid var(--line);border-radius:12px 12px 19px 19px;background:var(--mail-color);padding:57px 24px 24px;text-align:left;color:var(--ink);font:inherit;min-width:0;min-height:240px;box-shadow:0 9px 18px #57403408;transition:transform .3s,box-shadow .3s}
+.mail-envelope::before {content:"";position:absolute;z-index:-1;inset:0 0 auto;height:80px;background:var(--white);opacity:.6;clip-path:polygon(0 0,100% 0,50% 100%)}
+.mail-envelope::after {content:"";position:absolute;inset:auto 0 0;height:60px;background:var(--white);opacity:.25;clip-path:polygon(0 0,50% 80%,100% 0,100% 100%,0 100%);pointer-events:none}
+.mail-envelope[data-paper="sky"] {--mail-color:#e7f1fa}
+.mail-envelope[data-paper="garden"] {--mail-color:#ecf1df}
+.mail-envelope strong {display:block;font-size:20px;line-height:1.65;margin:16px 0;overflow-wrap:anywhere}
+.mail-stamp {position:absolute;top:18px;left:22px;font-size:27px;color:var(--rose-dark);transform:rotate(-12deg)}
+.mail-state {position:absolute;right:15px;top:16px;border:1px dashed var(--rose);color:var(--rose-dark);padding:5px 8px;border-radius:5px;font-size:12px;transform:rotate(5deg)}
+.mail-from,.mail-date,.mail-open-hint {display:block;font-size:13px;line-height:2;color:var(--muted)}
+.mail-open-hint {margin-top:14px;color:var(--rose-dark)}
+.mail-empty {grid-column:1/-1;padding:35px 20px;border:1px dashed var(--line);border-radius:18px;text-align:center;background:var(--surface);color:var(--muted);font-size:14px}
+.mail-empty>span {display:inline-block;font-size:50px;color:var(--rose);animation:letter-bob 5s ease-in-out infinite}
+.mail-archive {display:flex;align-items:center;justify-content:space-between;gap:15px;width:100%;text-align:left;flex-wrap:wrap;padding:20px 22px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;margin-top:24px;line-height:1.9}
+.mail-archive span {font-size:13px;color:var(--muted)}
+#composeLetterDialog,#readLetterDialog {width:min(720px,calc(100vw - 28px));max-height:calc(100dvh - 28px)}
+.compose-to {color:var(--rose-dark);line-height:1.9;margin:0 0 20px;overflow-wrap:anywhere}
+.paper-choices {border:0;padding:0;margin:0 0 23px;display:flex;gap:10px;flex-wrap:wrap}
+.paper-choices legend {font-size:14px;margin-bottom:12px;color:var(--muted)}
+.paper-choices label {display:flex;gap:5px;align-items:center;padding:9px 12px;background:var(--blush);border:1px solid var(--line);border-radius:22px;font-size:13px;min-height:44px;cursor:pointer}
+.paper-choices input {accent-color:var(--rose);width:15px;height:15px}
+.letter-body-label textarea {background-color:#fff7f1;background-image:repeating-linear-gradient(transparent 0,transparent 35px,#d4a39a36 35px,#d4a39a36 36px);line-height:36px!important;padding:12px 18px!important;min-height:300px;font-family:var(--sans);resize:vertical;color:#665047}
+[data-paper="sky"] .letter-body-label textarea {background-color:#f0f8ff}
+[data-paper="garden"] .letter-body-label textarea {background-color:#f6f9ed}
+.letter-write-meta {display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;line-height:1.8}
+#letterSendStatus,#readLetterStatus {font-size:13px;color:var(--rose-dark);line-height:1.9}
+.letter-reading {overflow:hidden;background:var(--surface);padding-top:26px}
+.opening-envelope {position:relative;width:180px;height:112px;margin:42px auto 36px;background:var(--blush);border:1px solid var(--line);border-radius:5px 5px 12px 12px;perspective:700px;box-shadow:0 14px 24px #57403412}
+.opening-flap {position:absolute;inset:0;background:var(--rose);clip-path:polygon(0 0,100% 0,50% 65%);transform-origin:top;opacity:.6}
+.envelope-seal {position:absolute;left:calc(50% - 14px);top:38px;width:28px;height:28px;display:grid;place-items:center;background:var(--rose);color:white;border-radius:50%;font-size:16px}
+.envelope-caption {position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:12px;color:var(--rose-dark)}
+.cute-paper {--sheet:#fff8f2;position:relative;margin:0 auto 10px;padding:32px 30px 24px;background-color:var(--sheet);background-image:radial-gradient(#e5bfb333 .7px,transparent .7px);background-size:9px 9px;border:1px solid #d9bbaa70;border-radius:8px 8px 22px 8px;box-shadow:0 10px 30px #5740340d;color:#665047;transform-origin:top center}
+.cute-paper::before {content:"";position:absolute;width:82px;height:24px;top:-10px;left:calc(50% - 41px);transform:rotate(-4deg);background:repeating-linear-gradient(90deg,#f2c7bcbb 0,#f2c7bcbb 5px,#f8dfd7bb 5px,#f8dfd7bb 10px);opacity:.8}
+.cute-paper[data-paper="sky"] {--sheet:#f1f8ff;border-color:#b9cedb}
+.cute-paper[data-paper="garden"] {--sheet:#f6f9ed;border-color:#c6d1b2}
+.paper-decoration {text-align:center;color:#bd8e86;font-size:22px;letter-spacing:9px;margin:3px 0 20px}
+.read-letter-meta {font-size:12px;color:#907c73;line-height:2}
+.cute-paper h2 {font-size:25px;line-height:1.65;overflow-wrap:anywhere;margin:14px 0 22px}
+.read-letter-body {white-space:pre-wrap;overflow-wrap:anywhere;line-height:2.3;font-size:17px;background:repeating-linear-gradient(transparent 0,transparent calc(2.3em - 1px),#bc9f8b26 calc(2.3em - 1px),#bc9f8b26 2.3em)}
+.letter-signature {text-align:right;margin-top:30px;line-height:2;font-size:15px;overflow-wrap:anywhere}
+.paper-footer {font-size:12px;text-align:center;margin-top:32px;color:#a48578;letter-spacing:1px}
+.letter-opening .opening-flap {animation:open-flap .65s ease forwards}
+.letter-opening .envelope-seal {animation:seal-away .4s ease forwards}
+.letter-opening .cute-paper {animation:unfold-paper 1.1s cubic-bezier(.18,.8,.24,1) both}
+#letterDialog[open] .letter-full {animation:unfold-paper .8s ease both}
+@keyframes open-flap {to{transform:rotateX(180deg);opacity:.35}}
+@keyframes seal-away {to{transform:translateY(16px) scale(.2);opacity:0}}
+@keyframes unfold-paper {0%{opacity:0;transform:translateY(-70px) scale(.88,.5)}35%{opacity:.4;transform:translateY(-36px) scale(.94,.7)}100%{opacity:1;transform:none}}
+@keyframes letter-bob {50%{transform:translateY(-7px) rotate(-5deg)}}
+.world-atmosphere {position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:2;opacity:.7;transition:opacity .4s}
+.world-orb {position:absolute;width:55vw;height:55vw;max-width:850px;max-height:850px;left:-28vw;top:12vh;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--rose) 13%,transparent),transparent 68%);animation:world-breathe 14s ease-in-out infinite alternate}
+.world-orb.second {left:auto;right:-25vw;top:55vh;background:radial-gradient(circle,color-mix(in srgb,var(--green) 13%,transparent),transparent 68%);animation-delay:-7s}
+.world-particle {position:absolute;top:-45px;left:var(--x);font-family:Arial,sans-serif;color:var(--rose);font-size:var(--size);opacity:0;text-shadow:0 2px 4px var(--white);animation:world-fall var(--duration) linear var(--delay) infinite;will-change:transform}
+html[data-season="summer"] .world-particle {color:#d2b05b;text-shadow:0 0 10px #e4c363,0 0 19px #e4c363}
+html[data-season="winter"] .world-particle {color:var(--rose);text-shadow:0 0 7px var(--white)}
+@keyframes world-fall {0%{opacity:0;transform:translate3d(0,-25px,0) rotate(0)}8%{opacity:.65}85%{opacity:.65}100%{opacity:0;transform:translate3d(var(--sway),calc(100vh + 100px),0) rotate(260deg)}}
+@keyframes world-breathe {to{transform:translate(18vw,-12vh) scale(1.15);opacity:.4}}
+.world-ripple {position:fixed;z-index:100;pointer-events:none;font-size:21px;color:var(--rose);animation:world-pop 900ms ease-out forwards;text-shadow:0 0 5px var(--white)}
+@keyframes world-pop {0%{transform:translate(-50%,-20%) scale(.4);opacity:.9}100%{transform:translate(calc(-50% + var(--drift)),-95px) scale(1.3) rotate(25deg);opacity:0}}
+.primary,.secondary,.mail-archive,.anniversary-card,.wish-aside {transition:transform .25s,box-shadow .25s,background-color .4s}
+.primary:active,.secondary:active,.mail-archive:active {transform:scale(.96)}
+.section-header h2::after {content:" ✧";display:inline-block;color:var(--rose);font-size:.7em;animation:world-twinkle 5s ease-in-out infinite}
+@keyframes world-twinkle {50%{opacity:.35;transform:scale(.7) rotate(90deg)}}
+.nav a.active::after {transition:width .3s,opacity .3s}
+html.world-hidden .world-atmosphere *,html.world-reading .world-atmosphere * {animation-play-state:paused!important}
+html.world-reading .world-atmosphere {opacity:.12}
+html[data-auth="locked"] .world-atmosphere {opacity:.25}
+.motion-paused .world-atmosphere *,.motion-paused .section-header h2::after,.motion-paused .mail-empty>span {animation-play-state:paused!important}
+.motion-paused .world-ripple {display:none}
+.motion-paused .letter-opening .cute-paper,.motion-paused .letter-opening .opening-flap,.motion-paused .letter-opening .envelope-seal,.motion-paused #letterDialog[open] .letter-full {animation:none!important;opacity:1;transform:none}
+.motion-paused .letter-opening .opening-flap {transform:rotateX(180deg)}
+.motion-paused .letter-opening .envelope-seal {opacity:0}
+.motion-paused .mood-inner {transition:none}
+@media(hover:hover) {.mail-envelope:hover{transform:translateY(-6px) rotate(-1deg);box-shadow:0 16px 28px #57403412}.mail-archive:hover,.anniversary-card:hover{transform:translateY(-3px)}.primary:hover{transform:translateY(-2px)}}
+@media(max-width:900px) {.mail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nav{gap:17px}.clock{gap:7px}.clock strong{font-size:24px}}
+@media(max-width:650px) {.nav{gap:0}.nav a{padding:9px 3px;white-space:nowrap;font-size:12px}.clock{gap:8px;max-width:400px}.clock strong{font-size:23px}.clock-area{padding:26px 14px}.clock small{font-size:12px}.mail-grid{grid-template-columns:1fr;gap:18px}.mail-envelope{min-height:215px}.mail-envelope strong{font-size:21px}.mail-toolbar{gap:6px}.mail-tabs button{padding:10px 15px}.mail-archive{padding:17px}.cute-paper{padding:28px 19px 20px}.cute-paper h2{font-size:23px}.read-letter-body{font-size:16px}.opening-envelope{margin-bottom:30px}.paper-choices{gap:6px}.paper-choices label{font-size:12px;padding:8px 9px}.form-field select{font-size:16px}.section-header h2{font-size:25px}.world-particle:nth-of-type(n+17){display:none}}
+@media(max-width:360px) {.nav a{font-size:11px;padding-inline:2px}.clock{gap:5px}.clock strong{font-size:21px}}
+@media(prefers-reduced-motion:reduce) {.world-atmosphere *,.section-header h2::after,.mail-empty>span{animation:none!important}.world-ripple{display:none!important}.letter-opening .cute-paper,.letter-opening .opening-flap,.letter-opening .envelope-seal,#letterDialog[open] .letter-full{animation:none!important;transform:none;opacity:1}.mood-inner{transition:none!important}.mail-envelope,.primary,.secondary,.mail-archive,.anniversary-card{transition:none!important}}

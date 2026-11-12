@@ -93,8 +93,40 @@
         await request('/rest/v1/couple_settings?on_conflict=owner_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates'},body:JSON.stringify({owner_id:member.ownerId,me:data.me,partner:data.partner,start_date:data.startDate,anniversaries:data.anniversaries||[]})});
         return {saved:true};
       }
-      if (path === '/messages' && method === 'GET') return {messages:await request('/rest/v1/couple_messages?select=id,author,text,createdAt:created_at&order=created_at.desc&limit=500')};
+      if (path === '/letters' && method === 'GET') {
+        const rows=[];let offset=0;
+        for(;;){
+          const page=await request('/rest/v1/couple_messages?text=like.'+encodeURIComponent(window.QXNN_MAIL_CODEC.prefix)+'*&select=id,author,text,createdAt:created_at&order=created_at.desc,id.desc&limit=500&offset='+offset);
+          rows.push(...page);if(page.length<500)break;offset+=page.length;
+        }
+        return {letters:window.QXNN_MAIL_CODEC.decode(rows)};
+      }
+      if (path === '/letters' && method === 'POST') {
+        if(!member)member=await rpc('couple_current_member');
+        const texts=window.QXNN_MAIL_CODEC.encode(data);
+        // Reuse the draft id after a lost response so retry cannot send a
+        // second visible letter. Duplicate identical chunks decode once.
+        const existing=await api('/letters');
+        const sent=existing.letters.find(letter=>letter.id===data.id&&letter.author===member.identity);
+        if(sent){
+          if(sent.subject!==String(data.subject).trim()||sent.body!==String(data.body).trim()||sent.style!==data.style){const error=new Error('上次的信已经寄出。');error.alreadySent=true;throw error;}
+          return {sent:true};
+        }
+        await request('/rest/v1/couple_messages',{method:'POST',body:JSON.stringify(texts.map(text=>({owner_id:member.ownerId,author:member.identity,text})))});
+        return {sent:true};
+      }
+      const readLetter=/^\/letters\/([^/]+)\/read$/.exec(path);
+      if(readLetter && method==='POST'){
+        if(!member)member=await rpc('couple_current_member');
+        const {letters}=await api('/letters');
+        const letter=letters.find(item=>item.id===readLetter[1]&&item.author!==member.identity);
+        if(!letter)throw new Error('这封来信暂时无法打开，请刷新信箱。');
+        if(!letter.readAt)await request('/rest/v1/couple_messages',{method:'POST',body:JSON.stringify({owner_id:member.ownerId,author:member.identity,text:window.QXNN_MAIL_CODEC.prefix+JSON.stringify({kind:'read',id:letter.id,letterAuthor:letter.author})})});
+        return {read:true};
+      }
+      if (path === '/messages' && method === 'GET') return {messages:await request('/rest/v1/couple_messages?text=not.like.'+encodeURIComponent(window.QXNN_MAIL_CODEC.prefix)+'*&select=id,author,text,createdAt:created_at&order=created_at.desc&limit=500')};
       if (path === '/messages' && method === 'POST') {
+        if(typeof data.text!=='string'||data.text.startsWith(window.QXNN_MAIL_CODEC.prefix))throw new Error('这段内容请通过写信功能发送。');
         if(!member)member=await rpc('couple_current_member');
         return first(await request('/rest/v1/couple_messages',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({owner_id:member.ownerId,author:member.identity,text:data.text})}));
       }

@@ -321,7 +321,8 @@
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
-  <link rel="stylesheet" href="shared-space.css?v=20261112-personal">
+  <link rel="stylesheet" href="shared-space.css?v=20261112-mailbox">
+  <link rel="stylesheet" href="couple-world.css?v=20261112-mailbox">
 </head>
 <body>
   <section class="login-page" id="loginPage" aria-labelledby="loginTitle">
@@ -367,7 +368,7 @@
   <header class="topbar">
     <div class="wrap header-inner">
       <a class="brand" href="#home"><svg class="icon brand-mark"><use href="#heart"/></svg>QXNN</a>
-      <nav class="nav" aria-label="主导航"><a class="active" href="#home">写给你</a><a href="#time">我们的时光</a><a href="#photos">心动相册</a><a href="#moods">悄悄话</a><a href="#wishes">一起去做</a><a href="#messages">留言</a></nav>
+      <nav class="nav" aria-label="主导航"><a class="active" href="#home">首页</a><a href="#time">时光</a><a href="#photos">相册</a><a href="#letters">信箱</a><a href="#moods">悄悄话</a><a href="#wishes">心愿</a><a href="#messages">留言</a></nav>
       <button class="header-action" data-open="settingsDialog"><svg class="icon"><use href="#edit"/></svg>定制我们的小站</button>
     </div>
   </header>
@@ -377,7 +378,7 @@
         <div class="eyebrow" id="solarEyebrow">一份只写给你的偏爱</div>
         <h1>把平凡日子，<br>写成<span>我们的故事。</span></h1>
         <p class="hero-copy">亲爱的<span data-partner>邬小姐</span>，见字如面。<br>这里收藏我们的心动，也留一点位置给往后的四季。</p>
-        <div class="hero-actions"><button class="primary" data-open="letterDialog"><svg class="icon"><use href="#mail"/></svg>读一封写给你的信</button><a class="text-link" href="#time">故事从这里开始<svg class="icon"><use href="#arrow"/></svg></a></div>
+        <div class="hero-actions"><button class="primary" data-compose-letter><svg class="icon"><use href="#mail"/></svg>给你写封信</button><a class="text-link" href="#letters">打开我们的信箱<svg class="icon"><use href="#arrow"/></svg></a></div>
         <a class="theme-chip" href="#seasons" aria-label="查看节气换装"><svg class="icon" aria-hidden="true"><use id="heroTermIcon" href="#leaf"/></svg><span id="heroTermName">今日节气</span><span class="chip-divider" aria-hidden="true"></span><span id="heroThemeLabel">跟随时节，慢慢喜欢你</span></a>
         <div class="hero-note" id="solarHeroNote">于千万人之中，刚巧遇见你。</div>
       </div>
@@ -436,7 +437,7 @@
     <div class="intro-strip"><div class="couple"><span class="avatar" id="myAvatar">我</span><svg class="icon couple-heart"><use href="#heart"/></svg><span class="avatar rose" id="partnerAvatar">邬</span><span class="couple-names"><span id="myName">我</span> &amp; <span data-partner>邬小姐</span></span></div><span class="strip-note">两个人，一些小事，很多个明天。</span></div>
     <section class="section" id="time">
       <div class="section-header"><div><span class="section-number">01 / 把时间留给我们</span><h2>从那一天开始</h2><p class="section-desc">日子一天天过去，喜欢一点点累积。</p></div><button class="text-link" data-open="settingsDialog">设置在一起日期<svg class="icon"><use href="#edit"/></svg></button></div>
-      <div class="counter-card"><div class="counter-copy"><p class="mini-label" id="counterLabel">我们故事的第一天</p><div class="days-line"><strong id="days">— —</strong><span class="days-unit">天</span></div><p class="counter-caption" id="counterCaption">选一个属于你们的日期，让时光从这里开始。</p></div><div class="clock-area"><div class="clock"><div><strong id="hours">— —</strong><small>小时</small></div><span>:</span><div><strong id="minutes">— —</strong><small>分钟</small></div><span>:</span><div><strong id="seconds">— —</strong><small>秒</small></div></div><p class="start-date" id="startDateLabel">还没有设置纪念日</p></div></div>
+      <div class="counter-card"><div class="counter-copy"><p class="mini-label" id="counterLabel">我们故事的第一天</p><div class="days-line"><strong id="days">— —</strong><span class="days-unit">天</span></div><p class="counter-caption" id="counterCaption">选一个属于你们的日期，让时光从这里开始。</p></div><div class="clock-area"><div class="clock" aria-label="在一起的时间"><div><strong id="years">— —</strong><small>年</small></div><div><strong id="months">— —</strong><small>月</small></div><div><strong id="elapsedDays">— —</strong><small>日</small></div><div><strong id="hours">— —</strong><small>时</small></div><div><strong id="minutes">— —</strong><small>分</small></div><div><strong id="seconds">— —</strong><small>秒</small></div></div><p class="start-date" id="startDateLabel">还没有设置纪念日</p></div></div>
       <div class="anniversary-heading"><div><h3>值得记住的每一天</h3><p>生日、初次见面，或一个只属于你们的日子。</p></div><button class="secondary" data-open="anniversaryDialog"><svg class="icon" aria-hidden="true"><use href="#plus"/></svg>添加纪念日</button></div>
       <div class="anniversary-grid" id="anniversaryList"></div>
     </section>
@@ -457,8 +458,10 @@
       <input id="sharedMediaInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,video/mp4,video/webm,video/quicktime,video/x-matroska" multiple hidden>
     </section>
     <section class="section" id="letters">
-      <div class="section-header"><div><span class="section-number">04 / 有些话，想慢慢说</span><h2>见字如面</h2><p class="section-desc">把没说完的心事，认真写在这里。</p></div><button class="text-link" data-open="letterDialog">打开这封信<svg class="icon"><use href="#arrow"/></svg></button></div>
-      <div class="letter-preview"><div><div class="quote-mark">“</div><blockquote class="love-quote">只愿君心似我心，<br>定不负相思意。</blockquote><span class="quote-attribution">摘自写给你的信</span></div><div class="letter-summary"><h3>亲爱的邬小姐，见字如面。</h3><p>我们的故事才刚刚拉开序幕，<br>等你我抒写一篇童话。</p><button class="text-link" data-open="letterDialog">还有很多话，想说给你听<svg class="icon"><use href="#arrow"/></svg></button></div></div>
+      <div class="section-header"><div><span class="section-number">04 / 一封一封，把喜欢寄给你</span><h2>我们的信箱 <span id="mailUnread" class="mail-badge" hidden></span></h2><p class="section-desc">认真写给彼此的信，都在这里好好收着。登录小屋，就能收到对方的来信。</p></div><button class="primary" data-compose-letter>✎ 给你写封信</button></div>
+      <div class="mail-toolbar"><div class="mail-tabs" role="tablist" aria-label="信件分类"><button id="mailInboxTab" role="tab" aria-controls="mailList" aria-selected="true" data-mail-tab="inbox">收到的信</button><button id="mailSentTab" role="tab" aria-controls="mailList" aria-selected="false" data-mail-tab="sent">寄出的信</button></div><button class="text-link" id="refreshMail">刷新信箱 ↻</button></div>
+      <p id="mailStatus" class="mail-status" role="status">登录后，来收信吧。</p><div id="mailList" class="mail-grid" role="tabpanel" aria-labelledby="mailInboxTab"></div>
+      <button class="mail-archive" data-open="letterDialog">✉ 最初的一封信 <span>见字如面，把故事的开始好好留着 →</span></button>
     </section>
     <section class="section" id="moods">
       <div class="section-header"><div><span class="section-number">05 / 给每一种心情的悄悄话</span><h2>有些偏爱，翻开就知道</h2><p class="section-desc">点开一张卡片，留一句话给此刻的你。</p></div></div>
@@ -496,9 +499,12 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">小屋设置</h2><button class="icon-button" data-close aria-label="关闭小屋设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help" id="roomLoginSummary">已登录两个人的小屋。</p><p class="form-help">退出后，这台设备需要重新登录。云端照片和留言、本机原有记录都会保留。请使用各自的账号登录，留言会自动署名。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>继续逛逛</button><button class="primary" type="button" id="disconnectSharedSpace">退出登录</button></div></div></dialog>
   <script src="vendor/lunar.js"></script>
-  <script src="mood-notes.js?v=20261112-personal"></script>
-  <script src="anniversaries.js?v=20261112-personal"></script>
-  <script src="cloud-config.js?v=20261112-personal"></script>
+  <script src="mood-notes.js?v=20261112-mailbox"></script>
+  <script src="couple-time.js?v=20261112-mailbox"></script>
+  <script src="date-ideas.js?v=20261112-mailbox"></script>
+  <script src="couple-mail.js?v=20261112-mailbox"></script>
+  <script src="anniversaries.js?v=20261112-mailbox"></script>
+  <script src="cloud-config.js?v=20261112-mailbox"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
@@ -543,16 +549,7 @@
     const solarCalendarCache = new Map();
     let previewSolarTerm = '';
     let lastSolarDate = '';
-    const dateIdeas = [
-      { title:'一起看一次日落', detail:'挑一个晴天，带上喜欢的饮料。在天色慢慢变暖的时候，聊聊最近的小事。' },
-      { title:'一起做一顿晚饭', detail:'从买菜开始，一人准备一道菜。做得好不好吃都没关系，厨房里的笑声更重要。' },
-      { title:'一起逛一次书店', detail:'各自挑一本想推荐给对方的书，再找个安静的角落，读几页喜欢的句子。' },
-      { title:'一起散一场没有目的的步', detail:'选一条平时没走过的路，不赶时间。看到喜欢的小店，就进去看看。' },
-      { title:'一起拍一组日常合照', detail:'不必去很远的地方。家门口、街角、常去的小店，都可以成为我们的背景。' },
-      { title:'一起过一个居家电影夜', detail:'挑一部两个人都想看的电影，准备一点零食，再留点时间聊聊喜欢的片段。' },
-      { title:'一起写一张给未来的明信片', detail:'写下此刻的小愿望，约好以后再读。看看那时的我们，实现了哪一件。' },
-      { title:'一起吃一顿慢悠悠的早餐', detail:'把一个早晨留给彼此。热乎乎的早餐，和不用着急结束的聊天。' }
-    ];
+    const dateIdeas = window.QXNN_DATE_IDEAS.ideas;
     const letterTexts = {
       original: [
         '亲爱的邬小姐，见字如面。',
@@ -726,19 +723,16 @@
 
     function updateClock() {
       if (!state.startDate) {
-        ['days','hours','minutes','seconds'].forEach(identifier => byId(identifier).textContent = '— —');
+        ['days','years','months','elapsedDays','hours','minutes','seconds'].forEach(identifier => byId(identifier).textContent = '— —');
         byId('counterLabel').textContent = '我们故事的第一天';
         byId('counterCaption').textContent = '选一个属于你们的日期，让时光从这里开始。';
         byId('startDateLabel').textContent = '还没有设置纪念日';
         return;
       }
-      const started = new Date(state.startDate + 'T00:00:00');
-      const now = new Date();
-      const calendarDays = Math.floor((Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()) - Date.UTC(started.getFullYear(),started.getMonth(),started.getDate())) / 86400000);
-      setClockValue('days', Math.max(0,calendarDays).toLocaleString('zh-CN'));
-      setClockValue('hours', String(now.getHours()).padStart(2,'0'));
-      setClockValue('minutes', String(now.getMinutes()).padStart(2,'0'));
-      setClockValue('seconds', String(now.getSeconds()).padStart(2,'0'));
+      const elapsed = window.QXNN_TIME.elapsed(state.startDate);
+      setClockValue('days',elapsed.totalDays.toLocaleString('zh-CN'));
+      ['years','months','hours','minutes','seconds'].forEach(key => setClockValue(key,String(elapsed[key]).padStart(2,'0')));
+      setClockValue('elapsedDays',String(elapsed.days).padStart(2,'0'));
       byId('counterLabel').textContent = '我们已经一起走过';
       byId('counterCaption').textContent = '从遇见你的那一天起，每一天都有了新的意义。';
       byId('startDateLabel').textContent = '始于 ' + state.startDate.replaceAll('-',' / ');
@@ -1184,20 +1178,17 @@
       }
     });
     document.querySelectorAll('.mood-card').forEach((card,index) => card.addEventListener('click', () => {
-      const message = card.querySelector('.mood-message');
-      message.textContent = window.QXNN_MOOD_NOTES.draw(['missing','tired','down'][index]);
-      card.setAttribute('aria-expanded','true');
-      card.setAttribute('aria-label','再听一句：' + card.querySelector('.mood-title').textContent);
-      card.querySelector('.mood-front').setAttribute('aria-hidden','true');
-      card.querySelector('.mood-back').setAttribute('aria-hidden','false');
-      card.querySelector('.mood-back .mood-hint').textContent = '再点一下，再听一句';
-      message.setAttribute('aria-live','polite');
-      animateElement(message,[{opacity:.25,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:250});
+      const expanded = card.getAttribute('aria-expanded') !== 'true';
+      if (expanded) card.querySelector('.mood-message').textContent = window.QXNN_MOOD_NOTES.draw(['missing','tired','down'][index]);
+      card.setAttribute('aria-expanded',String(expanded));
+      card.setAttribute('aria-label',(expanded?'合上心情卡：':'翻开心情卡：') + card.querySelector('.mood-title').textContent);
+      card.querySelector('.mood-front').setAttribute('aria-hidden',String(expanded));
+      card.querySelector('.mood-back').setAttribute('aria-hidden',String(!expanded));
+      card.querySelector('.mood-back .mood-hint').textContent = '再点一下，轻轻收好';
     }));
     byId('drawIdea').addEventListener('click', () => {
-      const choices = dateIdeas.map((idea,index) => index).filter(index => index !== selectedIdeaIndex);
-      selectedIdeaIndex = choices[Math.floor(Math.random() * choices.length)];
-      const idea = dateIdeas[selectedIdeaIndex];
+      const idea = window.QXNN_DATE_IDEAS.draw();
+      selectedIdeaIndex = dateIdeas.indexOf(idea);
       byId('ideaTitle').textContent = idea.title;
       byId('ideaMessage').textContent = idea.detail;
       byId('saveIdea').disabled = false;
@@ -1247,7 +1238,9 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
-  <script src="supabase-room.js?v=20261112-personal"></script>
-  <script src="shared-space.js?v=20261112-personal"></script>
+  <script src="mail-codec.js?v=20261112-mailbox"></script>
+  <script src="supabase-room.js?v=20261112-mailbox"></script>
+  <script src="shared-space.js?v=20261112-mailbox"></script>
+  <script src="world-effects.js?v=20261112-mailbox"></script>
 </body>
 </html>
