@@ -32,6 +32,11 @@
     by('loginIdentity').options[2].textContent = state.partner;
     if (identity) by('messageAuthor').value = identity;
     by('messageAuthor').disabled = connected;
+    const author = identity === 'partner' ? state.partner : state.me;
+    by('messageSenderName').textContent = author;
+    by('messageSenderAvatar').textContent = Array.from(author)[0] || '♡';
+    by('messageRecipientName').textContent = identity === 'partner' ? state.me : state.partner;
+    by('messageForm').dataset.author = identity || 'me';
   }
   function loginFeedback(message = '', busy = false) {
     by('loginFeedback').textContent = message;
@@ -85,7 +90,7 @@
     return response.json();
   }
   function displayMode() {
-    by('sendMessage').textContent = connected ? '留给你' : cloud?.address && !localOnly ? '连接后留言' : '保存到本机';
+    by('sendMessageLabel').textContent = connected ? '把心意寄给你' : cloud?.address && !localOnly ? '连接后留言' : '保存到本机';
     by('uploadPhoto').disabled = Boolean(uploadController) || migrationBusy;
     by('disconnectSharedSpace').disabled = Boolean(uploadController);
     by('connectSharedSpace').disabled = Boolean(uploadController) || loginBusy;
@@ -480,7 +485,7 @@
     const data = {address:connection.address,secret:connection.secret,provider:connection.provider,anonKey:connection.anonKey,email:connection.email,bucket:connection.bucket};
     const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
     const fragment = connection.provider === 'supabase' && cloud?.address === connection.address ? '#key=' + encodeURIComponent(connection.secret) : '#room=' + encoded;
-    const link = location.origin + location.pathname + '?v=20261112-login' + fragment;
+    const link = location.origin + location.pathname + '?v=20261112-letter-card' + fragment;
     try { await navigator.clipboard.writeText(link); toast('两人专属链接已复制，对方首次打开即可自动记住小屋。'); }
     catch {
       by('roomInvite').value = link; by('roomInviteField').hidden = false; by('roomInvite').focus(); by('roomInvite').select();

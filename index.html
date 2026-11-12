@@ -321,7 +321,7 @@
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
-  <link rel="stylesheet" href="shared-space.css?v=20261112-login">
+  <link rel="stylesheet" href="shared-space.css?v=20261112-letter-card">
 </head>
 <body>
   <section class="login-page" id="loginPage" aria-labelledby="loginTitle">
@@ -473,7 +473,17 @@
       <div class="section-header"><div><span class="section-number">08 / 有话，只想对你说</span><h2>给你留句话</h2><p class="section-desc">今天的小开心、突然的想念，都可以写在这里。</p></div></div>
       <div class="shared-status" id="sharedStatus" role="status">本机留言 · 连接共享空间后，两部手机才能互相看到。</div>
       <div class="photo-shared-tools"><button class="text-link" id="migrateLocalMessages" hidden>将本机留言复制到共享小屋</button></div>
-      <div class="message-layout"><form class="message-compose" id="messageForm"><label class="form-field">当前留言身份<select id="messageAuthor"><option value="me">我</option><option value="partner">她</option></select></label><label class="form-field">想对你说<textarea id="messageText" maxlength="1000" placeholder="比如：今天路过那家小店，又想起你了。" required></textarea></label><div class="message-compose-bottom"><span id="messageCounter">0 / 1000</span><button class="primary" id="sendMessage" type="submit">保存到本机</button></div></form><div class="message-board"><div class="message-board-heading"><span>把想念，一句句收好</span><button class="text-link" id="refreshMessages">刷新留言</button></div><ol class="message-list" id="messageList"></ol></div></div>
+      <div class="message-layout">
+        <form class="message-compose" id="messageForm">
+          <div class="message-compose-heading"><div><span class="message-kicker">把日常，写成喜欢</span><h3>给你的一封小短信</h3></div><span class="message-postmark" aria-hidden="true"><svg class="icon"><use href="#heart"/></svg><span>给你</span></span></div>
+          <div class="message-sender"><span class="message-sender-avatar" id="messageSenderAvatar" aria-hidden="true">我</span><div class="message-sender-copy"><span>这封信来自</span><strong id="messageSenderName">我</strong></div><span class="message-auto-sign"><span aria-hidden="true">✓</span> 自动署名</span></div>
+          <select id="messageAuthor" aria-label="当前留言身份" hidden><option value="me">我</option><option value="partner">她</option></select>
+          <div class="message-letter-paper"><label class="message-greeting" for="messageText">亲爱的<span id="messageRecipientName">你</span>，</label><textarea id="messageText" maxlength="1000" placeholder="今天的小开心，路上的小风景，或是突然很想你的那一刻……" required></textarea><span class="message-paper-heart" aria-hidden="true">♡</span></div>
+          <div class="message-compose-bottom"><span class="message-word-count"><svg class="icon" aria-hidden="true"><use href="#edit"/></svg><span id="messageCounter">0 / 1000</span><span>字</span></span><button class="primary" id="sendMessage" type="submit"><span id="sendMessageLabel">保存到本机</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 3-7 18-4-7-7-4L21 3ZM10 14 21 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+          <p class="message-compose-note"><svg class="icon" aria-hidden="true"><use href="#heart"/></svg>慢慢写，我会认真看。</p>
+        </form>
+        <div class="message-board"><div class="message-board-heading"><span>把想念，一句句收好</span><button class="text-link" id="refreshMessages">刷新留言</button></div><ol class="message-list" id="messageList"></ol></div>
+      </div>
     </section>
     <div class="heart-corner"><button class="heart-button" id="heartButton" aria-label="点一下，收下一句心意"><svg class="icon"><use href="#heart"/></svg></button><p id="heartMessage">轻轻点一下，收下一点喜欢。</p></div>
     <footer class="site-footer"><span>为<span data-partner>邬小姐</span>认真留下一点心意。</span><span>本机内容存在当前浏览器；共享内容以小屋连接状态为准。</span><button class="footer-settings motion-toggle" id="motionToggle" aria-pressed="false"><span class="motion-dot" aria-hidden="true"></span><span id="motionLabel">暂停动效</span></button><button class="footer-settings" data-open="settingsDialog">小站设置与备份</button></footer>
@@ -485,7 +495,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">小屋设置</h2><button class="icon-button" data-close aria-label="关闭小屋设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help" id="roomLoginSummary">已登录两个人的小屋。</p><p class="form-help">退出后，这台设备需要重新登录。云端照片和留言、本机原有记录都会保留。请只将两人专属链接发给对方。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>继续逛逛</button><button class="primary" type="button" id="disconnectSharedSpace">退出登录</button></div></div></dialog>
   <script src="vendor/lunar.js"></script>
-  <script src="cloud-config.js?v=20261112-login"></script>
+  <script src="cloud-config.js?v=20261112-letter-card"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
@@ -1230,7 +1240,7 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
-  <script src="supabase-room.js?v=20261112-login"></script>
-  <script src="shared-space.js?v=20261112-login"></script>
+  <script src="supabase-room.js?v=20261112-letter-card"></script>
+  <script src="shared-space.js?v=20261112-letter-card"></script>
 </body>
 </html>
