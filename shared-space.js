@@ -406,7 +406,7 @@
     const data = {address:connection.address,secret:connection.secret,provider:connection.provider,anonKey:connection.anonKey,email:connection.email,bucket:connection.bucket};
     const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
     const fragment = connection.provider === 'supabase' && cloud?.address === connection.address ? '#key=' + encodeURIComponent(connection.secret) : '#room=' + encoded;
-    const link = location.origin + location.pathname + '?v=20261112-one-album' + fragment;
+    const link = location.origin + location.pathname + '?v=20261112-mobile-font2' + fragment;
     try { await navigator.clipboard.writeText(link); toast('两人专属链接已复制，对方首次打开即可自动记住小屋。'); }
     catch {
       by('roomInvite').value = link; by('roomInviteField').hidden = false; by('roomInvite').focus(); by('roomInvite').select();

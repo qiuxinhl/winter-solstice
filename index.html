@@ -6,10 +6,11 @@
   <meta name="theme-color" content="#fbf8f4">
   <meta name="format-detection" content="telephone=no">
   <title>QXNN</title>
-  <link rel="preload" href="vendor/zcool-kuaile.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="vendor/qxnn-happy-ui-v2.woff2" as="font" type="font/woff2" crossorigin>
   <style>
+    @font-face { font-family:"QXNN Happy"; src:url("vendor/qxnn-happy-ui-v2.woff2") format("woff2"),url("vendor/qxnn-happy-ui-v2.ttf") format("truetype"); font-weight:400; font-style:normal; font-display:swap; }
     @font-face { font-family:"ZCOOL KuaiLe"; src:url("vendor/zcool-kuaile.woff2") format("woff2"); font-weight:400; font-style:normal; font-display:swap; }
-    :root { --paper:#fbf8f4; --white:#fffdfb; --rose:#bf645f; --rose-dark:#964a46; --blush:#f3e4df; --ink:#403d38; --muted:#8d847c; --line:#e8ded5; --green:#707b62; --serif:"ZCOOL KuaiLe","Yuanti SC","Hiragino Maru Gothic ProN","Microsoft YaHei",sans-serif; --sans:ui-rounded,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+    :root { --paper:#fbf8f4; --white:#fffdfb; --rose:#bf645f; --rose-dark:#964a46; --blush:#f3e4df; --ink:#403d38; --muted:#8d847c; --line:#e8ded5; --green:#707b62; --serif:"QXNN Happy","ZCOOL KuaiLe","Yuanti SC","Hiragino Maru Gothic ProN","Microsoft YaHei",sans-serif; --sans:ui-rounded,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
     * { box-sizing:border-box; }
     html { scroll-behavior:smooth; scroll-padding-top:104px; }
     body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--sans); font-size:14px; -webkit-tap-highlight-color:transparent; }
@@ -320,7 +321,7 @@
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
-  <link rel="stylesheet" href="shared-space.css?v=20261112-one-album">
+  <link rel="stylesheet" href="shared-space.css?v=20261112-mobile-font2">
 </head>
 <body>
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
@@ -460,7 +461,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">连接两个人的小屋</h2><button class="icon-button" data-close aria-label="关闭共享空间设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help">首次打开两人专属链接后，当前浏览器会自动记住小屋。专属链接只发给对方；清理浏览器数据后需要重新连接。</p><form id="sharedSpaceForm"><label class="form-field" id="sharedSpaceAddressField">空间地址<input id="sharedSpaceAddress" type="url" placeholder="https://你们的空间地址" autocomplete="url" required></label><label class="form-field">两人专属链接或小屋口令<input id="sharedSpaceSecret" type="password" minlength="32" maxlength="7000" placeholder="粘贴对方发来的专属链接" autocomplete="off" required></label><p class="form-help" id="sharedConnectionHelp">首次连接后，这台设备会自动记住小屋。</p><div class="dialog-actions"><button class="secondary" type="button" id="disconnectSharedSpace">使用本机留言</button><button class="primary" type="submit" id="connectSharedSpace">连接小屋</button></div></form></div></dialog>
   <script src="vendor/lunar.js"></script>
-  <script src="cloud-config.js?v=20261112-one-album"></script>
+  <script src="cloud-config.js?v=20261112-mobile-font2"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
@@ -1205,7 +1206,7 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
-  <script src="supabase-room.js?v=20261112-one-album"></script>
-  <script src="shared-space.js?v=20261112-one-album"></script>
+  <script src="supabase-room.js?v=20261112-mobile-font2"></script>
+  <script src="shared-space.js?v=20261112-mobile-font2"></script>
 </body>
 </html>
