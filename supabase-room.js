@@ -13,7 +13,7 @@
       return response.json().catch(() => null);
     }
     function problem(response, data) {
-      if (response.status === 401 || response.status === 403) return new Error('小屋口令不正确，或登录已过期，请重新连接。');
+      if (response.status === 401 || response.status === 403 || (response.status === 400 && /invalid_credentials|invalid login credentials/i.test((data?.code || '') + ' ' + (data?.msg || data?.message || data?.error_description || '')))) return new Error('小屋口令不正确，或登录已过期，请重新登录。');
       const detail = data?.message || data?.error_description || data?.error || '';
       if (/quota|capacity|space|容量|空间/.test(detail)) return new Error('免费空间剩余容量不足，请先整理相册。');
       if (/50.?MB|size|大小|文件过大/i.test(detail) || response.status === 413) return new Error('免费版单个文件最多50MB，请压缩或剪短视频后再试。');

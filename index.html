@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-auth="locked">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -321,9 +321,33 @@
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
-  <link rel="stylesheet" href="shared-space.css?v=20261112-mobile-font2">
+  <link rel="stylesheet" href="shared-space.css?v=20261112-login">
 </head>
 <body>
+  <section class="login-page" id="loginPage" aria-labelledby="loginTitle">
+    <div class="login-orbit" aria-hidden="true"><i>✦</i><i>♡</i><i>✧</i><i>♡</i></div>
+    <div class="login-card">
+      <span class="login-brand">QXNN <span aria-hidden="true">♡</span></span>
+      <div class="login-illustration" aria-hidden="true">
+        <svg viewBox="0 0 320 170" fill="none"><ellipse cx="160" cy="145" rx="116" ry="13" fill="currentColor" opacity=".08"/><path d="M81 56c-14-17 17-17 3-35m39 35c-14-17 17-17 3-35m80 35c-14-17 17-17 3-35" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="login-steam"/><path d="M53 76h88v43a28 28 0 0 1-28 28H81a28 28 0 0 1-28-28Z" fill="var(--blush)" stroke="currentColor" stroke-width="2"/><path d="M141 86h9c25 0 25 35-1 35h-8" stroke="currentColor" stroke-width="3"/><path d="M185 76h80v43a28 28 0 0 1-28 28h-24a28 28 0 0 1-28-28Z" fill="var(--surface-alt)" stroke="currentColor" stroke-width="2"/><path d="M265 86h8c25 0 25 35-1 35h-7" stroke="currentColor" stroke-width="3"/><path d="M84 102q4-6 8 0l5 5 5-5q9-9 14 0c5 8-8 17-19 24-11-7-24-16-13-24Z" fill="currentColor" opacity=".65"/><path d="M211 105q14 17 28 0" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+        <span class="login-season">四季流转，身边是你。</span>
+      </div>
+      <h1 id="loginTitle">欢迎回到我们的小屋</h1>
+      <p class="login-intro">把今天的小事，慢慢说给你听。</p>
+      <form id="sharedSpaceForm">
+        <label class="form-field" for="loginIdentity">我是谁<select id="loginIdentity" required><option value="" disabled selected>选一下你的名字</option><option value="me">我</option><option value="partner">她</option></select></label>
+        <label class="form-field" id="sharedSpaceAddressField" hidden>空间地址<input id="sharedSpaceAddress" type="url" autocomplete="url" required></label>
+        <label class="form-field" for="sharedSpaceSecret">两人专属链接或小屋口令</label>
+        <div class="login-password"><input id="sharedSpaceSecret" type="password" maxlength="7000" placeholder="粘贴专属链接，或输入小屋口令" autocomplete="current-password" autocapitalize="off" spellcheck="false" required aria-describedby="sharedConnectionHelp loginFeedback"><button type="button" id="toggleLoginSecret" aria-label="显示口令" aria-pressed="false">显示</button></div>
+        <div class="login-options"><label><input id="rememberLogin" type="checkbox" checked>记住这台设备</label><span>只属于两个人</span></div>
+        <p id="loginFeedback" class="login-feedback" role="status" aria-live="polite"></p>
+        <button class="primary login-submit" type="submit" id="connectSharedSpace">回到小屋 <span aria-hidden="true">→</span></button>
+        <p class="form-help" id="sharedConnectionHelp">首次进入，请使用对方发来的专属链接或原来的小屋口令。</p>
+      </form>
+      <p class="login-footer">一日三餐，四季有你。</p>
+    </div>
+  </section>
+  <noscript><p class="login-noscript">请在浏览器中启用 JavaScript 后进入小屋。</p></noscript>
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
     <symbol id="heart" viewBox="0 0 24 24"><path d="M20.8 4.8a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.4a5.5 5.5 0 0 0 0-7.8Z"/></symbol>
     <symbol id="arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
@@ -449,7 +473,7 @@
       <div class="section-header"><div><span class="section-number">08 / 有话，只想对你说</span><h2>给你留句话</h2><p class="section-desc">今天的小开心、突然的想念，都可以写在这里。</p></div></div>
       <div class="shared-status" id="sharedStatus" role="status">本机留言 · 连接共享空间后，两部手机才能互相看到。</div>
       <div class="photo-shared-tools"><button class="text-link" id="migrateLocalMessages" hidden>将本机留言复制到共享小屋</button></div>
-      <div class="message-layout"><form class="message-compose" id="messageForm"><label class="form-field">这次是谁在写<select id="messageAuthor"><option value="me">我</option><option value="partner">她</option></select></label><label class="form-field">想对你说<textarea id="messageText" maxlength="1000" placeholder="比如：今天路过那家小店，又想起你了。" required></textarea></label><div class="message-compose-bottom"><span id="messageCounter">0 / 1000</span><button class="primary" id="sendMessage" type="submit">保存到本机</button></div></form><div class="message-board"><div class="message-board-heading"><span>把想念，一句句收好</span><button class="text-link" id="refreshMessages">刷新留言</button></div><ol class="message-list" id="messageList"></ol></div></div>
+      <div class="message-layout"><form class="message-compose" id="messageForm"><label class="form-field">当前留言身份<select id="messageAuthor"><option value="me">我</option><option value="partner">她</option></select></label><label class="form-field">想对你说<textarea id="messageText" maxlength="1000" placeholder="比如：今天路过那家小店，又想起你了。" required></textarea></label><div class="message-compose-bottom"><span id="messageCounter">0 / 1000</span><button class="primary" id="sendMessage" type="submit">保存到本机</button></div></form><div class="message-board"><div class="message-board-heading"><span>把想念，一句句收好</span><button class="text-link" id="refreshMessages">刷新留言</button></div><ol class="message-list" id="messageList"></ol></div></div>
     </section>
     <div class="heart-corner"><button class="heart-button" id="heartButton" aria-label="点一下，收下一句心意"><svg class="icon"><use href="#heart"/></svg></button><p id="heartMessage">轻轻点一下，收下一点喜欢。</p></div>
     <footer class="site-footer"><span>为<span data-partner>邬小姐</span>认真留下一点心意。</span><span>本机内容存在当前浏览器；共享内容以小屋连接状态为准。</span><button class="footer-settings motion-toggle" id="motionToggle" aria-pressed="false"><span class="motion-dot" aria-hidden="true"></span><span id="motionLabel">暂停动效</span></button><button class="footer-settings" data-open="settingsDialog">小站设置与备份</button></footer>
@@ -459,9 +483,9 @@
   <dialog id="letterDialog" aria-labelledby="letterTitle"><div class="dialog-head"><h2 id="letterTitle">一封写给你的信</h2><button class="icon-button" data-close aria-label="合上信"><svg class="icon"><use href="#close"/></svg></button></div><div class="letter-tabs" role="tablist" aria-label="信件版本"><button class="letter-tab" id="originalTab" role="tab" aria-selected="true" aria-controls="letterContent" data-letter="original">文档原信</button><button class="letter-tab" id="winterTab" role="tab" aria-selected="false" aria-controls="letterContent" data-letter="winter" tabindex="-1">立冬寄语</button></div><article class="letter-full" id="letterContent" role="tabpanel" aria-labelledby="originalTab"></article></dialog>
   <dialog id="photoDialog" aria-labelledby="photoTitle"><div class="dialog-head"><h2 id="photoTitle">收藏这一刻</h2><button class="icon-button" data-close aria-label="关闭照片"><svg class="icon"><use href="#close"/></svg></button></div><img class="viewer-image" id="viewerImage" alt="收藏的照片"><div class="dialog-body"><div class="viewer-nav"><button class="secondary" id="previousPhoto">上一张</button><span id="photoPosition"></span><button class="secondary" id="nextPhoto">下一张</button></div><form id="captionForm"><label class="form-field">给这一刻写一句话<input id="captionInput" maxlength="60" placeholder="比如：想把这一刻，一直记住。"></label><div class="dialog-actions"><button class="secondary danger" type="button" id="deletePhoto">移出相册</button><button class="primary" type="submit">保存这一刻</button></div></form></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">连接两个人的小屋</h2><button class="icon-button" data-close aria-label="关闭共享空间设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help">首次打开两人专属链接后，当前浏览器会自动记住小屋。专属链接只发给对方；清理浏览器数据后需要重新连接。</p><form id="sharedSpaceForm"><label class="form-field" id="sharedSpaceAddressField">空间地址<input id="sharedSpaceAddress" type="url" placeholder="https://你们的空间地址" autocomplete="url" required></label><label class="form-field">两人专属链接或小屋口令<input id="sharedSpaceSecret" type="password" minlength="32" maxlength="7000" placeholder="粘贴对方发来的专属链接" autocomplete="off" required></label><p class="form-help" id="sharedConnectionHelp">首次连接后，这台设备会自动记住小屋。</p><div class="dialog-actions"><button class="secondary" type="button" id="disconnectSharedSpace">使用本机留言</button><button class="primary" type="submit" id="connectSharedSpace">连接小屋</button></div></form></div></dialog>
+  <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">小屋设置</h2><button class="icon-button" data-close aria-label="关闭小屋设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help" id="roomLoginSummary">已登录两个人的小屋。</p><p class="form-help">退出后，这台设备需要重新登录。云端照片和留言、本机原有记录都会保留。请只将两人专属链接发给对方。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>继续逛逛</button><button class="primary" type="button" id="disconnectSharedSpace">退出登录</button></div></div></dialog>
   <script src="vendor/lunar.js"></script>
-  <script src="cloud-config.js?v=20261112-mobile-font2"></script>
+  <script src="cloud-config.js?v=20261112-login"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
@@ -1206,7 +1230,7 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
-  <script src="supabase-room.js?v=20261112-mobile-font2"></script>
-  <script src="shared-space.js?v=20261112-mobile-font2"></script>
+  <script src="supabase-room.js?v=20261112-login"></script>
+  <script src="shared-space.js?v=20261112-login"></script>
 </body>
 </html>
