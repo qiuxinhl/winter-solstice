@@ -499,7 +499,7 @@
     finally { migrationBusy = false; displayMode(); }
   });
   async function copyInvite() {
-    const link=location.origin+location.pathname+'?v=20261112-speed';
+    const link=location.origin+location.pathname+'?v=20261112-member-fast';
     try { await navigator.clipboard.writeText(link);toast('小屋网址已复制，对方使用自己的账号登录即可。'); }
     catch { by('roomInvite').value=link;by('roomInviteField').hidden=false;by('roomInvite').focus();by('roomInvite').select();toast('网址已显示，可以长按复制。'); }
   }

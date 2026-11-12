@@ -16,6 +16,10 @@
     let session = target.session || null;
     let signingIn = null;
     let member = null;
+    let memberUser = null;
+    let memberCheckedAt = 0;
+    let memberLoading = null;
+    let cancelMembership = null;
     const files = new Map();
     const address = target.address.replace(/\/$/,'');
     const bucket = target.bucket || 'couple-private';
@@ -74,6 +78,44 @@
     }
     const rpc = (name,body={},signal) => request('/rest/v1/rpc/' + name,{method:'POST',body:JSON.stringify(body),signal});
     const first = data => Array.isArray(data) ? data[0] : data;
+    async function currentMember(fresh=false) {
+      const current=await login();
+      if(!fresh&&member&&memberUser===current.user.id&&Date.now()-memberCheckedAt<60000)return member;
+      if(memberLoading)return memberLoading;
+      memberLoading=new Promise((resolve,reject)=>{
+        const primary=new AbortController(),backup=new AbortController();
+        let finished=false,backupStarted=false,backupTimer,deadline;
+        const failures=[];
+        function finish(value,error){
+          if(finished)return;finished=true;clearTimeout(backupTimer);clearTimeout(deadline);primary.abort();backup.abort();
+          if(error){reject(error);return;}
+          member=value;memberUser=current.user.id;memberCheckedAt=Date.now();resolve(value);
+        }
+        cancelMembership=()=>finish(null,new DOMException('已退出登录。','AbortError'));
+        function valid(value){
+          if(!value?.ownerId||!['me','partner'].includes(value.identity))throw new Error('这个账号尚未加入小屋。');
+          return value;
+        }
+        function failed(error){
+          if(finished)return;failures.push(error);
+          if(!backupStarted)startBackup();
+          else if(failures.length===2)finish(null,failures.find(item=>item.authFailure)||failures[0]);
+        }
+        function startBackup(){
+          if(finished||backupStarted)return;backupStarted=true;
+          rpc('couple_current_member',{},backup.signal).then(valid).then(value=>finish(value),failed);
+        }
+        // Read this account's indexed membership row directly. If that route
+        // stalls, use the existing server function; cancel the slower read.
+        backupTimer=setTimeout(startBackup,700);
+        deadline=setTimeout(()=>{const error=new Error('小屋身份查询暂时没有响应，正在重试。');error.name='TimeoutError';error.transient=true;finish(null,error);},12000);
+        request('/rest/v1/couple_members?user_id=eq.'+encodeURIComponent(current.user.id)+'&select=user_id,room_owner_id,author&limit=1',{signal:primary.signal}).then(rows=>{
+          const row=rows?.[0];
+          return valid(row?.user_id===current.user.id?{ownerId:row.room_owner_id,identity:row.author}:null);
+        }).then(value=>finish(value),failed);
+      });
+      try{return await memberLoading;}finally{memberLoading=null;cancelMembership=null;}
+    }
     async function entry(id) {
       if (files.has(id)) return files.get(id);
       const rows = await request('/rest/v1/couple_media?id=eq.' + encodeURIComponent(id) + '&select=*');
@@ -93,13 +135,10 @@
         options.onStage?.('credentials');
         await login();
         options.onStage?.('membership');
-        member=await rpc('couple_current_member');
-        if(!member?.ownerId||!['me','partner'].includes(member.identity))throw new Error('这个账号尚未加入小屋。');
-        return member;
+        return currentMember(true);
       }
       if (path === '/room' && method === 'GET') {
-        member=await rpc('couple_current_member');
-        if(!member?.ownerId||!['me','partner'].includes(member.identity))throw new Error('这个账号尚未加入小屋。');
+        member=await currentMember();
         const [usage,rows] = await Promise.all([rpc('couple_storage_usage'),request('/rest/v1/couple_settings?select=me,partner,start_date,anniversaries&limit=1')]);
         return {...first(usage),...member,profile:rows?.length ? {me:rows[0].me,partner:rows[0].partner,startDate:rows[0].start_date,anniversaries:rows[0].anniversaries||[]} : null};
       }
@@ -200,7 +239,8 @@
       return {url,expiresAt:Infinity,revoke:() => URL.revokeObjectURL(url)};
     }
     async function logout(){
-      const active=session;session=null;member=null;target.session=null;target.password='';
+      cancelMembership?.();
+      const active=session;session=null;member=null;memberUser=null;memberCheckedAt=0;target.session=null;target.password='';
       if(active?.access_token)await fetch(address+'/auth/v1/logout?scope=local',{method:'POST',headers:{apikey:target.anonKey,Authorization:'Bearer '+active.access_token},credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(10000)}).catch(()=>{});
     }
     const result = {api,uploadPart,imagePreview,logout}; adapters.set(target,result); return result;
