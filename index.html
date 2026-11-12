@@ -318,7 +318,7 @@
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
-  <link rel="stylesheet" href="shared-space.css?v=20261112-private-room">
+  <link rel="stylesheet" href="shared-space.css?v=20261112-one-album">
 </head>
 <body>
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
@@ -420,9 +420,13 @@
       <div class="section-header"><div><span class="section-number">03 / 值得收藏的瞬间</span><h2>每一张，都很喜欢</h2><p class="section-desc">照片会替我们，记住那些舍不得忘的日常。</p></div><button class="text-link" id="uploadPhoto"><svg class="icon"><use href="#plus"/></svg>放入照片</button></div>
       <input id="photoInput" type="file" accept="image/*" multiple hidden>
       <div class="shared-status" id="photoSyncNotice">本机相册 · 这里原有的照片保留在当前设备，连接小屋后可以上传共享。</div>
-      <div class="photo-shared-tools" id="photoSharedTools"><button class="secondary" id="refreshAlbum" disabled>刷新共享相册</button><button class="text-link" id="copyAlbumInvite" hidden>复制两人专属链接</button><button class="text-link" data-open="sharedSpaceDialog">连接小屋</button><button class="secondary" id="migrateLocalPhotos" hidden>将本机照片上传到共享相册</button><button class="text-link" id="showLocalPhotos" hidden>查看本机原有照片</button></div>
+      <div class="photo-shared-tools" id="photoSharedTools"><button class="secondary" id="refreshAlbum" disabled>刷新共享相册</button><button class="text-link" id="copyAlbumInvite" hidden>复制两人专属链接</button><button class="text-link" id="albumConnection" data-open="sharedSpaceDialog">连接小屋</button><button class="secondary" id="migrateLocalPhotos" hidden>将本机照片上传到共享相册</button><button class="text-link" id="showLocalPhotos" hidden>查看本机原有照片</button></div>
+      <label class="form-field" id="roomInviteField" hidden>只发给对方的专属链接<input id="roomInvite" readonly autocomplete="off"></label>
+      <div class="shared-upload" id="sharedUpload" hidden><div><span id="sharedUploadLabel"></span><button class="text-link" id="cancelSharedUpload">取消上传</button></div><progress id="sharedUploadProgress" value="0" max="100" aria-label="照片视频上传进度"></progress><span id="sharedUploadPercent" role="status"></span></div>
       <p class="form-help" id="localPhotosLabel">本机照片，仅当前设备可见。</p>
       <div class="gallery" id="gallery"></div>
+      <div class="shared-media-grid" id="sharedMediaGrid" hidden></div>
+      <input id="sharedMediaInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,video/mp4,video/webm,video/quicktime,video/x-matroska" multiple hidden>
     </section>
     <section class="section" id="letters">
       <div class="section-header"><div><span class="section-number">04 / 有些话，想慢慢说</span><h2>见字如面</h2><p class="section-desc">把没说完的心事，认真写在这里。</p></div><button class="text-link" data-open="letterDialog">打开这封信<svg class="icon"><use href="#arrow"/></svg></button></div>
@@ -439,17 +443,10 @@
     </section>
     <section class="section" id="memories"><div class="section-header"><div><span class="section-number">07 / 把小日子认真存好</span><h2>我们的小事<span class="memory-count" id="memoryCount"></span></h2><p class="section-desc">有些时刻很小，却想记很久。</p></div><button class="text-link" data-open="memoryDialog"><svg class="icon"><use href="#plus"/></svg>记一件小事</button></div><ol class="memory-list" id="memoryList"></ol></section>
     <section class="section" id="messages">
-      <div class="section-header"><div><span class="section-number">08 / 有话，只想对你说</span><h2>给你留句话</h2><p class="section-desc">今天的小开心、突然的想念，都可以写在这里。</p></div><button class="text-link" data-open="sharedSpaceDialog">连接共享空间<svg class="icon"><use href="#arrow"/></svg></button></div>
+      <div class="section-header"><div><span class="section-number">08 / 有话，只想对你说</span><h2>给你留句话</h2><p class="section-desc">今天的小开心、突然的想念，都可以写在这里。</p></div></div>
       <div class="shared-status" id="sharedStatus" role="status">本机留言 · 连接共享空间后，两部手机才能互相看到。</div>
-      <div class="photo-shared-tools"><button class="text-link" id="migrateLocalMessages" hidden>将本机留言复制到共享小屋</button><button class="text-link" id="copyRoomInvite" hidden>复制两人专属链接</button></div>
-      <label class="form-field" id="roomInviteField" hidden>只发给对方的专属链接<input id="roomInvite" readonly autocomplete="off"></label>
+      <div class="photo-shared-tools"><button class="text-link" id="migrateLocalMessages" hidden>将本机留言复制到共享小屋</button></div>
       <div class="message-layout"><form class="message-compose" id="messageForm"><label class="form-field">这次是谁在写<select id="messageAuthor"><option value="me">我</option><option value="partner">她</option></select></label><label class="form-field">想对你说<textarea id="messageText" maxlength="1000" placeholder="比如：今天路过那家小店，又想起你了。" required></textarea></label><div class="message-compose-bottom"><span id="messageCounter">0 / 1000</span><button class="primary" id="sendMessage" type="submit">保存到本机</button></div></form><div class="message-board"><div class="message-board-heading"><span>把想念，一句句收好</span><button class="text-link" id="refreshMessages">刷新留言</button></div><ol class="message-list" id="messageList"></ol></div></div>
-    </section>
-    <section class="section" id="sharedAlbum">
-      <div class="section-header"><div><span class="section-number">09 / 两个人的照片与影片</span><h2>把日常，存成回忆</h2><p class="section-desc">照片保留原文件，视频可以直接在这里播放。</p></div><button class="primary" id="uploadSharedMedia" disabled><svg class="icon"><use href="#plus"/></svg>上传照片或视频</button></div>
-      <div class="shared-storage"><span id="sharedStorageText">共享相册尚未连接，暂不能上传。</span><button class="text-link" data-open="sharedSpaceDialog">连接我们的小屋<svg class="icon"><use href="#arrow"/></svg></button></div>
-      <div class="shared-upload" id="sharedUpload" hidden><div><span id="sharedUploadLabel"></span><button class="text-link" id="cancelSharedUpload">取消上传</button></div><progress id="sharedUploadProgress" value="0" max="100" aria-label="照片视频上传进度"></progress><span id="sharedUploadPercent" role="status"></span></div>
-      <div class="shared-media-grid" id="sharedMediaGrid"><p class="shared-empty">连接云端空间后，你们上传的照片和视频会出现在这里。容量以实际开通的空间为准。</p></div><input id="sharedMediaInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,video/mp4,video/webm,video/quicktime,video/x-matroska" multiple hidden>
     </section>
     <div class="heart-corner"><button class="heart-button" id="heartButton" aria-label="点一下，收下一句心意"><svg class="icon"><use href="#heart"/></svg></button><p id="heartMessage">轻轻点一下，收下一点喜欢。</p></div>
     <footer class="site-footer"><span>为<span data-partner>邬小姐</span>认真留下一点心意。</span><span>本机内容存在当前浏览器；共享内容以小屋连接状态为准。</span><button class="footer-settings motion-toggle" id="motionToggle" aria-pressed="false"><span class="motion-dot" aria-hidden="true"></span><span id="motionLabel">暂停动效</span></button><button class="footer-settings" data-open="settingsDialog">小站设置与备份</button></footer>
@@ -461,7 +458,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">连接两个人的小屋</h2><button class="icon-button" data-close aria-label="关闭共享空间设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help">首次打开两人专属链接后，当前浏览器会自动记住小屋。专属链接只发给对方；清理浏览器数据后需要重新连接。</p><form id="sharedSpaceForm"><label class="form-field" id="sharedSpaceAddressField">空间地址<input id="sharedSpaceAddress" type="url" placeholder="https://你们的空间地址" autocomplete="url" required></label><label class="form-field">两人专属链接或小屋口令<input id="sharedSpaceSecret" type="password" minlength="32" maxlength="7000" placeholder="粘贴对方发来的专属链接" autocomplete="off" required></label><p class="form-help" id="sharedConnectionHelp">首次连接后，这台设备会自动记住小屋。</p><div class="dialog-actions"><button class="secondary" type="button" id="disconnectSharedSpace">使用本机留言</button><button class="primary" type="submit" id="connectSharedSpace">连接小屋</button></div></form></div></dialog>
   <script src="vendor/lunar.js"></script>
-  <script src="cloud-config.js?v=20261112-private-room"></script>
+  <script src="cloud-config.js?v=20261112-one-album"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
@@ -1206,7 +1203,7 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
-  <script src="supabase-room.js?v=20261112-private-room"></script>
-  <script src="shared-space.js?v=20261112-private-room"></script>
+  <script src="supabase-room.js?v=20261112-one-album"></script>
+  <script src="shared-space.js?v=20261112-one-album"></script>
 </body>
 </html>

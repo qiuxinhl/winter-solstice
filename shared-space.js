@@ -16,6 +16,7 @@
   let migrationBusy = false;
   let localOnly = false;
   let localPhotosChecked = false;
+  let storageSummary = '';
   const previewLoaders = new Map();
   let imageObserver = null;
   const by = id => document.getElementById(id);
@@ -42,11 +43,12 @@
   }
   function displayMode() {
     by('sendMessage').textContent = connected ? '留给你' : cloud?.address && !localOnly ? '连接后留言' : '保存到本机';
-    by('uploadSharedMedia').disabled = !connected || Boolean(uploadController);
+    by('uploadPhoto').disabled = Boolean(uploadController) || migrationBusy;
     by('disconnectSharedSpace').disabled = Boolean(uploadController);
     by('connectSharedSpace').disabled = Boolean(uploadController);
-    by('copyRoomInvite').hidden = !connected;
     by('copyAlbumInvite').hidden = !connected;
+    by('albumConnection').textContent = connected ? '小屋设置' : '连接小屋';
+    by('sharedMediaGrid').hidden = !connected;
     by('refreshAlbum').disabled = !connected || refreshBusy || Boolean(uploadController);
     by('migrateLocalPhotos').hidden = !connected || !state.photos.length;
     by('migrateLocalPhotos').disabled = !connected || Boolean(uploadController) || migrationBusy;
@@ -55,18 +57,14 @@
     if (connected) {
       by('photos').querySelector('.section-desc').textContent = '这里上传的照片和视频，会同步到两个人的小屋。';
       by('uploadPhoto').textContent = '上传照片或视频';
-      if (by('gallery').nextElementSibling !== by('sharedMediaGrid')) by('gallery').after(by('sharedMediaGrid'));
-      if (by('photoSharedTools').nextElementSibling !== by('sharedUpload')) by('photoSharedTools').after(by('sharedUpload'));
-      by('photoSyncNotice').textContent = '共享相册 · 云端共 ' + media.length + ' 个文件 · ' + by('sharedStorageText').textContent;
+      by('photoSyncNotice').textContent = '共享相册 · 云端共 ' + media.length + ' 个文件 · ' + storageSummary;
       by('gallery').hidden = true;
       by('localPhotosLabel').hidden = true;
       by('showLocalPhotos').hidden = !state.photos.length;
     } else {
-      if (by('sharedMediaGrid').parentElement !== by('sharedAlbum')) by('sharedAlbum').append(by('sharedMediaGrid'));
-      if (by('sharedUpload').parentElement !== by('sharedAlbum')) by('sharedAlbum').append(by('sharedUpload'));
       by('photoSyncNotice').textContent = cloud?.address ? '免费小屋已开通，先连接小屋再上传，两台设备就能看到同一份相册。' : '本机相册 · 这里原有的照片仅保存在当前设备。';
-      by('gallery').hidden = false;
-      by('localPhotosLabel').hidden = false;
+      by('gallery').hidden = Boolean(cloud?.address) && !state.photos.length;
+      by('localPhotosLabel').hidden = !state.photos.length;
       by('showLocalPhotos').hidden = true;
     }
   }
@@ -230,7 +228,7 @@
       await receiveProfile(room.profile);
       if (pendingProfile && !profileSaving) await saveProfile();
       status('已连接两个人的小屋 · 留言和照片视频可以跨设备查看。');
-      by('sharedStorageText').textContent = '已用 ' + bytes(room.usedBytes) + ' / 可用上限 ' + bytes(room.maxBytes) + (room.maxFileBytes ? ' · 单个文件最多 ' + bytes(room.maxFileBytes) : '') + (room.pendingBytes ? ' · 正在上传 ' + bytes(room.pendingBytes) : '');
+      storageSummary = '已用 ' + bytes(room.usedBytes) + ' / 可用上限 ' + bytes(room.maxBytes) + (room.maxFileBytes ? ' · 单个文件最多 ' + bytes(room.maxFileBytes) : '') + (room.pendingBytes ? ' · 正在上传 ' + bytes(room.pendingBytes) : '');
       displayMode(); renderMessages();
       if (mediaChanged) renderMedia();
       else if (forceMedia) previewLoaders.forEach(reload => reload());
@@ -319,7 +317,7 @@
     localOnly = true; localPhotosChecked = false;
     by('sharedSpaceSecret').value = ''; by('sharedSpaceDialog').close();
     status('本机留言 · 连接共享空间后，两部手机才能互相看到。');
-    by('sharedStorageText').textContent = '共享相册尚未连接，暂不能上传。'; displayMode(); renderMessages(); renderMedia();
+    storageSummary = ''; displayMode(); renderMessages(); renderMedia();
   });
   function uploadPart(path, blob, signal, onProgress) {
     if (connection?.provider === 'supabase') return window.getSupabaseRoom(connection).uploadPart(path,blob,signal,onProgress);
@@ -336,7 +334,6 @@
       request.send(blob);
     });
   }
-  by('uploadSharedMedia').addEventListener('click',() => { if (connected && !uploadController) by('sharedMediaInput').click(); });
   by('cancelSharedUpload').addEventListener('click',() => uploadController?.abort());
   async function uploadFiles(files,onUploaded) {
     if (!connected || uploadController || !files.length) return;
@@ -404,20 +401,18 @@
     } catch (error) { toast(error.message); }
     finally { migrationBusy = false; displayMode(); }
   });
-  async function copyInvite(event) {
+  async function copyInvite() {
     if (!connected) return;
     const data = {address:connection.address,secret:connection.secret,provider:connection.provider,anonKey:connection.anonKey,email:connection.email,bucket:connection.bucket};
     const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
     const fragment = connection.provider === 'supabase' && cloud?.address === connection.address ? '#key=' + encodeURIComponent(connection.secret) : '#room=' + encoded;
-    const link = location.origin + location.pathname + '?v=20261112-private-room' + fragment;
+    const link = location.origin + location.pathname + '?v=20261112-one-album' + fragment;
     try { await navigator.clipboard.writeText(link); toast('两人专属链接已复制，对方首次打开即可自动记住小屋。'); }
     catch {
-      if (event?.currentTarget?.id === 'copyAlbumInvite') by('photoSharedTools').after(by('roomInviteField'));
       by('roomInvite').value = link; by('roomInviteField').hidden = false; by('roomInvite').focus(); by('roomInvite').select();
       toast('专属链接已显示，请长按或选中复制。');
     }
   }
-  by('copyRoomInvite').addEventListener('click',copyInvite);
   by('copyAlbumInvite').addEventListener('click',copyInvite);
   window.addEventListener('our-world-state',() => { renderMessages(); displayMode(); saveProfile(); });
   window.addEventListener('beforeunload',event => { if (uploadController) { event.preventDefault(); event.returnValue = ''; } });
@@ -439,13 +434,12 @@
   });
   window.ourSharedSpace = {
     hasCloud:() => Boolean(cloud?.address || connection),
-    chooseMedia:() => { if (connected) by('sharedMediaInput').click(); else { connectionFields(); openDialog('sharedSpaceDialog'); } }
+    chooseMedia:() => { if (uploadController || migrationBusy) return; if (connected) by('sharedMediaInput').click(); else { connectionFields(); openDialog('sharedSpaceDialog'); } }
   };
   localNames(); displayMode(); renderMessages(); renderMedia();
   if (connection) refresh().catch(() => { status('共享空间暂时未连接 · 当前只显示本机留言。'); });
   else if (cloud?.address) {
     status('免费小屋已开通 · 连接后查看共同留言，下面暂显示本机记录。');
-    by('sharedStorageText').textContent = '免费空间已开通，连接小屋后即可查看相册和可用容量。';
   }
   setInterval(() => { if (connection && !document.hidden && !uploadController) refresh().catch(() => {}); },30000);
   const refreshOnReturn = () => { if (connection && !document.hidden && !uploadController) refresh(true).catch(() => { status('暂时无法刷新共享相册，已保留上次内容。'); }); };
