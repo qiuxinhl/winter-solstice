@@ -1,10 +1,21 @@
 (() => {
   'use strict';
   const adapters = new WeakMap();
+  const normalizeUsername = value => {
+    const username=value.normalize('NFKC').trim().toLowerCase();
+    if(!/^[\p{L}\p{N}_.-]{2,24}$/u.test(username))throw new Error('账号请使用2至24个中文、字母、数字、下划线、点或短横线。');
+    return username;
+  };
+  window.QXNN_ACCOUNT_EMAIL = async value => {
+    const bytes=new TextEncoder().encode('qxnn-account-v1:'+normalizeUsername(value));
+    const digest=await crypto.subtle.digest('SHA-256',bytes);
+    return 'qxnn-'+Array.from(new Uint8Array(digest),value=>value.toString(16).padStart(2,'0')).join('').slice(0,40)+'@accounts.qxnn.invalid';
+  };
   window.getSupabaseRoom = target => {
     if (adapters.has(target)) return adapters.get(target);
-    let session = null;
+    let session = target.session || null;
     let signingIn = null;
+    let member = null;
     const files = new Map();
     const address = target.address.replace(/\/$/,'');
     const bucket = target.bucket || 'couple-private';
@@ -13,7 +24,9 @@
       return response.json().catch(() => null);
     }
     function problem(response, data) {
-      if (response.status === 401 || response.status === 403 || (response.status === 400 && /invalid_credentials|invalid login credentials/i.test((data?.code || '') + ' ' + (data?.msg || data?.message || data?.error_description || '')))) return new Error('小屋口令不正确，或登录已过期，请重新登录。');
+      if (response.status === 401 || response.status === 403 || (response.status === 400 && /invalid_credentials|invalid login credentials|refresh.token|user_banned/i.test((data?.code || '') + ' ' + (data?.msg || data?.message || data?.error_description || '')))) {
+        const error=new Error(response.status===403?'这个账号暂时无法进入小屋，请核对账号。':'账号或密码不正确，或登录已过期，请重新登录。');error.authFailure=true;return error;
+      }
       const detail = data?.message || data?.error_description || data?.error || '';
       if (/quota|capacity|space|容量|空间/.test(detail)) return new Error('免费空间剩余容量不足，请先整理相册。');
       if (/50.?MB|size|大小|文件过大/i.test(detail) || response.status === 413) return new Error('免费版单个文件最多50MB，请压缩或剪短视频后再试。');
@@ -27,12 +40,15 @@
         const refresh = session?.refresh_token;
         const response = await fetch(address + '/auth/v1/token?grant_type=' + (refresh ? 'refresh_token' : 'password'), {
           method:'POST',headers:{apikey:target.anonKey,'Content-Type':'application/json'},
-          body:JSON.stringify(refresh ? {refresh_token:refresh} : {email:target.email,password:target.secret}),
+          body:JSON.stringify(refresh ? {refresh_token:refresh} : {email:target.email,password:target.password}),
           signal:AbortSignal.timeout(30000),credentials:'omit',referrerPolicy:'no-referrer'
         });
         const data = await responseData(response);
         if (!response.ok || !data?.access_token || !data.user?.id) { session = null; throw problem(response,data); }
         session = {...data,expires_at:data.expires_at || Math.floor(Date.now()/1000) + data.expires_in};
+        target.password = '';
+        target.session={access_token:session.access_token,refresh_token:session.refresh_token,expires_at:session.expires_at,user:{id:session.user.id}};
+        window.dispatchEvent(new Event('our-world-session'));
         return session;
       })();
       try { return await signingIn; } finally { signingIn = null; }
@@ -67,18 +83,20 @@
       const method = options.method || 'GET';
       const data = typeof options.body === 'string' ? JSON.parse(options.body) : {};
       if (path === '/room' && method === 'GET') {
-        const [usage,settings] = await Promise.all([rpc('couple_storage_usage'),request('/rest/v1/couple_settings?select=me,partner,start_date&limit=1')]);
-        return {...first(usage),profile:settings?.length ? {me:settings[0].me,partner:settings[0].partner,startDate:settings[0].start_date} : null};
+        member=await rpc('couple_current_member');
+        if(!member?.ownerId||!['me','partner'].includes(member.identity))throw new Error('这个账号尚未加入小屋。');
+        const [usage,rows] = await Promise.all([rpc('couple_storage_usage'),request('/rest/v1/couple_settings?select=me,partner,start_date,anniversaries&limit=1')]);
+        return {...first(usage),...member,profile:rows?.length ? {me:rows[0].me,partner:rows[0].partner,startDate:rows[0].start_date,anniversaries:rows[0].anniversaries||[]} : null};
       }
       if (path === '/room/profile' && method === 'PUT') {
-        const current = await login();
-        await request('/rest/v1/couple_settings?on_conflict=owner_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates'},body:JSON.stringify({owner_id:current.user.id,me:data.me,partner:data.partner,start_date:data.startDate})});
+        if(!member)member=await rpc('couple_current_member');
+        await request('/rest/v1/couple_settings?on_conflict=owner_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates'},body:JSON.stringify({owner_id:member.ownerId,me:data.me,partner:data.partner,start_date:data.startDate,anniversaries:data.anniversaries||[]})});
         return {saved:true};
       }
       if (path === '/messages' && method === 'GET') return {messages:await request('/rest/v1/couple_messages?select=id,author,text,createdAt:created_at&order=created_at.desc&limit=500')};
       if (path === '/messages' && method === 'POST') {
-        const current = await login();
-        return first(await request('/rest/v1/couple_messages',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({owner_id:current.user.id,author:data.author,text:data.text})}));
+        if(!member)member=await rpc('couple_current_member');
+        return first(await request('/rest/v1/couple_messages',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({owner_id:member.ownerId,author:member.identity,text:data.text})}));
       }
       const note = /^\/messages\/([^/]+)$/.exec(path);
       if (note && method === 'DELETE') { await request('/rest/v1/couple_messages?id=eq.' + encodeURIComponent(note[1]),{method:'DELETE'}); return {deleted:true}; }
@@ -134,6 +152,10 @@
       const url = URL.createObjectURL(blob);
       return {url,expiresAt:Infinity,revoke:() => URL.revokeObjectURL(url)};
     }
-    const result = {api,uploadPart,imagePreview}; adapters.set(target,result); return result;
+    async function logout(){
+      const active=session;session=null;member=null;target.session=null;target.password='';
+      if(active?.access_token)await fetch(address+'/auth/v1/logout?scope=local',{method:'POST',headers:{apikey:target.anonKey,Authorization:'Bearer '+active.access_token},credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(10000)}).catch(()=>{});
+    }
+    const result = {api,uploadPart,imagePreview,logout}; adapters.set(target,result); return result;
   };
 })();

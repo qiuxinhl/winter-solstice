@@ -1,0 +1,49 @@
+'use strict';
+const fs=require('node:fs');const path=require('node:path');const assert=require('node:assert/strict');
+async function main(){
+  const {PGlite}=require('./.verification/package/dist/index.cjs');const db=new PGlite();
+  const owner='11111111-1111-4111-8111-111111111111',a='22222222-2222-4222-8222-222222222222',b='33333333-3333-4333-8333-333333333333',stranger='44444444-4444-4444-8444-444444444444';
+  let checks=0;const query=async(sql,params=[]) => (await db.query(sql,params)).rows;
+  const scalar=async(sql,params=[])=>Object.values((await query(sql,params))[0])[0];
+  const eq=(x,y)=>{assert.deepEqual(x,y);checks++;};
+  const denied=async sql=>{await assert.rejects(db.query(sql),error=>error.code==='42501');checks++;};
+  const role=async uid=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[uid]);await db.exec('set role authenticated');};
+  try{
+    const previous=fs.readFileSync(path.join(__dirname,'verify-schema.cjs'),'utf8');
+    const platform=previous.match(/await db\.exec\(`([\s\S]+?)`\);/)[1];await db.exec(platform);
+    await db.exec(fs.readFileSync(path.join(__dirname,'schema.sql'),'utf8'));
+    await db.query('insert into auth.users(id) values ($1),($2),($3),($4)',[owner,a,b,stranger]);
+    await role(owner);
+    await db.query("insert into public.couple_messages(author,text) values ('me','existing message A'),('partner','existing message B')");
+    await db.query("insert into public.couple_settings(me,partner,start_date) values ('甲','乙','2020-02-29')");
+    const oldMedia=await scalar("select public.couple_reserve_media('existing.jpg','image/jpeg',123)");
+    await db.query("insert into storage.objects(bucket_id,name,metadata) values ('couple-private',$1,$2)",[oldMedia.path,{size:123,mimetype:'image/jpeg'}]);
+    await db.query('select public.couple_complete_media($1)',[oldMedia.id]);
+    await db.exec('reset role');await db.exec(fs.readFileSync(path.join(__dirname,'account-upgrade.sql'),'utf8'));
+    await db.query("insert into public.couple_members(user_id,room_owner_id,author) values ($1,$3,'me'),($2,$3,'partner')",[a,b,owner]);
+    await role(a);
+    eq(await scalar('select public.couple_current_member()'),{ownerId:owner,identity:'me'});
+    eq((await query('select * from public.couple_messages')).length,2);
+    eq((await query('select path from public.couple_media'))[0].path,oldMedia.path);
+    eq((await query('select name from storage.objects'))[0].name,oldMedia.path);
+    eq(await scalar('select anniversaries from public.couple_settings'),[]);
+    eq((await scalar('select public.couple_storage_usage()')).usedBytes,123);
+    await denied("insert into public.couple_members(user_id,room_owner_id,author) values ('44444444-4444-4444-8444-444444444444','11111111-1111-4111-8111-111111111111','partner')");
+    await denied("update public.couple_messages set author='partner'");
+    eq((await query('select user_id from public.couple_members')).length,1);
+    const own=await query("insert into public.couple_messages(author,text) values ('partner','A tries to spoof B') returning author,owner_id");eq(own[0],{author:'me',owner_id:owner});
+    await role(b);eq(await scalar('select public.couple_current_member()'),{ownerId:owner,identity:'partner'});
+    const other=await query("insert into public.couple_messages(author,text) values ('me','B tries to spoof A') returning author,owner_id");eq(other[0],{author:'partner',owner_id:owner});
+    const newMedia=await scalar("select public.couple_reserve_media('new.jpg','image/jpeg',42)");eq(newMedia.path,owner+'/'+newMedia.id);
+    await db.query("insert into storage.objects(bucket_id,name,metadata) values ('couple-private',$1,$2)",[newMedia.path,{size:42,mimetype:'image/jpeg'}]);
+    await db.query('select public.couple_complete_media($1)',[newMedia.id]);eq((await scalar('select public.couple_storage_usage()')).usedBytes,165);
+    const anniversary=[{id:'one',name:'生日',date:'2020-02-29',yearly:true}];await db.query('update public.couple_settings set anniversaries=$1',[anniversary]);
+    await role(a);eq(await scalar('select anniversaries from public.couple_settings'),anniversary);
+    await db.query('delete from storage.objects where name=$1',[newMedia.path]);await db.query('select public.couple_release_media($1)',[newMedia.id]);eq((await scalar('select public.couple_storage_usage()')).usedBytes,123);
+    for(const uid of [owner,stranger]){await role(uid);eq(await query('select id from public.couple_media'),[]);eq(await query('select id from public.couple_messages'),[]);eq(await query('select name from storage.objects'),[]);await denied('select public.couple_current_member()');await denied('select public.couple_storage_usage()');}
+    await db.exec('reset role;set role anon');await denied('select * from public.couple_members');await denied('select public.couple_current_member()');
+    await db.exec('reset role');await db.exec(fs.readFileSync(path.join(__dirname,'account-upgrade.sql'),'utf8'));await role(a);eq((await query('select id from public.couple_messages')).length,4);
+    console.log(JSON.stringify({status:'passed',checks,realCloudRequests:0,checksInclude:['original photos and messages preserved','two auth IDs one shared owner','server enforced message author','private storage and shared quota','outsider and retired account denied','anniversaries shared','repeat migration safe']}));
+  }finally{await db.close();}
+}
+main().catch(error=>{console.error(error.message);process.exitCode=1;});

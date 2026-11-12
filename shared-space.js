@@ -1,7 +1,6 @@
 (() => {
   'use strict';
-  const connectionKey = 'our-little-world-shared-connection-v1';
-  const identityKey = 'our-little-world-login-identity-v1';
+  const connectionKey = 'our-little-world-account-session-v2';
   let identity = null;
   let loginBusy = false;
   let remember = true;
@@ -28,8 +27,6 @@
   function localNames() {
     by('messageAuthor').options[0].textContent = state.me;
     by('messageAuthor').options[1].textContent = state.partner;
-    by('loginIdentity').options[1].textContent = state.me;
-    by('loginIdentity').options[2].textContent = state.partner;
     if (identity) by('messageAuthor').value = identity;
     by('messageAuthor').disabled = connected;
     const author = identity === 'partner' ? state.partner : state.me;
@@ -48,10 +45,9 @@
     try {
       const store = remember ? localStorage : sessionStorage;
       const other = remember ? sessionStorage : localStorage;
-      other.removeItem(connectionKey); other.removeItem(identityKey);
-      const saved = JSON.stringify(connection);
+      other.removeItem(connectionKey);
+      const saved = JSON.stringify({provider:connection.provider,address:connection.address,anonKey:connection.anonKey,bucket:connection.bucket,username:connection.username,session:connection.session});
       if (store.getItem(connectionKey) !== saved) store.setItem(connectionKey,saved);
-      if (identity && store.getItem(identityKey) !== identity) store.setItem(identityKey,identity);
     } catch { loginFeedback('已登录，但浏览器无法记住登录，下次需要重新进入。'); }
   }
   function loginMode() {
@@ -61,14 +57,13 @@
     by('loginPage').hidden = unlocked;
     document.querySelector('.topbar').inert = !unlocked;
     document.querySelector('main').inert = !unlocked;
-    by('sharedSpaceSecret').required = !connection;
+    by('loginPassword').required = true;
     if (!unlocked) document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
     if (connected) {
       by('roomLoginSummary').textContent = '当前身份：' + (identity === 'partner' ? state.partner : state.me) + '。' + (remember ? '这台设备已记住登录。' : '本次登录仅在当前标签页保留。');
-      if (!identity) loginFeedback('小屋已连接，选一下你的名字，就可以进来啦。');
     }
     if (unlocked && wasLocked) {
-      by('sharedSpaceSecret').value = '';
+      by('loginPassword').value = '';
       const destination = document.querySelector(location.hash === '#photos' ? '#photos' : '#home');
       requestAnimationFrame(() => destination?.scrollIntoView({behavior:'instant'}));
     }
@@ -77,17 +72,7 @@
   async function api(path, options = {}, target = connection) {
     if (!target) throw new Error('请先连接你们的共享空间。');
     if (target.provider === 'supabase') return window.getSupabaseRoom(target).api(path,options);
-    const response = await fetch(target.address + path, {
-      ...options,
-      headers: { Authorization:'Bearer ' + target.secret, ...(options.body && typeof options.body === 'string' ? {'Content-Type':'application/json'} : {}), ...options.headers },
-      signal:options.signal || AbortSignal.timeout(30000),
-      credentials:'omit', cache:'no-store', referrerPolicy:'no-referrer'
-    });
-    if (!response.ok) {
-      const detail = await response.json().catch(() => null);
-      throw new Error(detail?.error || (response.status === 401 ? '空间地址或小屋口令不正确。' : '暂时连接不上小屋，请稍后重试。'));
-    }
-    return response.json();
+    throw new Error('小屋连接配置不正确，请刷新页面。');
   }
   function displayMode() {
     by('sendMessageLabel').textContent = connected ? '把心意寄给你' : cloud?.address && !localOnly ? '连接后留言' : '保存到本机';
@@ -117,7 +102,7 @@
       by('showLocalPhotos').hidden = true;
     }
   }
-  const profile = () => ({me:state.me,partner:state.partner,startDate:state.startDate});
+  const profile = () => ({me:state.me,partner:state.partner,startDate:state.startDate,anniversaries:state.anniversaries||[]});
   async function saveProfile() {
     if (!connected || connection?.provider !== 'supabase' || applyingProfile) return;
     const next = profile();
@@ -275,6 +260,8 @@
       const [room,notes,album] = await Promise.all([api('/room',{},target),api('/messages',{},target),api('/media',{},target)]);
       if (target !== connection) return;
       const mediaChanged = !connected || JSON.stringify(media) !== JSON.stringify(album.media);
+      if (!['me','partner'].includes(room.identity)) throw new Error('这个账号尚未加入小屋。');
+      identity = room.identity;
       connected = true; sharedMessages = notes.messages; media = album.media;
       persistLogin();
       await receiveProfile(room.profile);
@@ -288,6 +275,13 @@
         localPhotosChecked = true;
         setTimeout(() => { if (connection === target && connected && !uploadController) migrateLocalPhotos(); },0);
       }
+    } catch (error) {
+      if (error.authFailure && target === connection) {
+        for (const store of [localStorage,sessionStorage]) { try { store.removeItem(connectionKey); } catch {} }
+        connection=null;connected=false;identity=null;sharedMessages=[];media=[];connectionRevision++;
+        renderMessages();renderMedia();loginFeedback(error.message);
+      }
+      throw error;
     } finally {
       refreshBusy = false; displayMode();
       if (connection && target !== connection) refresh().catch(() => {});
@@ -321,70 +315,46 @@
     catch { toast('暂时无法读取云端相册，请检查网络后重试。'); }
   });
   function connectionFields() {
-    by('sharedSpaceAddress').value = cloud?.address || connection?.address || '';
-    by('sharedSpaceAddressField').hidden = Boolean(cloud?.address);
-    by('sharedConnectionHelp').textContent = cloud?.address ? (connected ? '这台设备已记住小屋，下次打开会自动连接。可在相册复制两人专属链接给对方。' : '粘贴两人专属链接即可进入，也支持原来的小屋口令。电脑和微信各连接一次后，会在当前浏览器自动记住。') : '云端尚未开通，当前只能保存本机留言。';
+    by('sharedConnectionHelp').textContent = '使用自己的账号和密码，留言会自动署上你的名字。';
   }
-  function readInvite(hash) {
-    let invite;
-    if (hash.startsWith('#key=')) {
-      if (cloud?.provider !== 'supabase') throw new Error('小屋暂未配置。');
-      invite = {...cloud,secret:decodeURIComponent(hash.slice(5))};
-    } else if (hash.startsWith('#room=')) {
-      const encoded = hash.slice(6).replace(/-/g,'+').replace(/_/g,'/');
-      if (encoded.length > 6000) throw new Error('邀请链接过长。');
-      invite = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encoded),letter=>letter.charCodeAt(0))));
-    } else throw new Error('邀请链接不正确。');
-    if (invite.provider !== 'supabase' || !/^https:\/\/[a-z]{20}\.supabase\.co$/.test(invite.address) || typeof invite.secret !== 'string' || invite.secret.length < 32 || invite.secret.length > 128 || (cloud?.address && invite.address !== cloud.address)) throw new Error('邀请链接不正确。');
-    return invite;
-  }
-  document.querySelectorAll('[data-open="sharedSpaceDialog"]').forEach(button => button.addEventListener('click',connectionFields));
   by('sharedSpaceForm').addEventListener('submit',async event => {
     event.preventDefault();
     if (uploadController || loginBusy) return;
-    const selectedIdentity = by('loginIdentity').value;
-    if (!['me','partner'].includes(selectedIdentity)) return loginFeedback('请先选一下你的名字。');
-    let url;
-    try { url = new URL(by('sharedSpaceAddress').value.trim()); }
-    catch { return loginFeedback('小屋地址暂未配置，请稍后再试。'); }
-    if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) return loginFeedback('请填写有效的 HTTPS 空间地址。');
-    let target = by('sharedSpaceSecret').value.trim() ? {...(cloud || {}),address:url.href.replace(/\/$/,''),secret:by('sharedSpaceSecret').value.trim()} : connection;
-    if (!target) return loginFeedback('请输入小屋口令或粘贴专属链接。');
-    if (/^https?:\/\//i.test(target.secret)) {
-      try {
-        const pasted = new URL(target.secret);
-        if (!((pasted.origin === location.origin && pasted.pathname === location.pathname) || (pasted.origin === 'https://qiuxinhl.github.io' && pasted.pathname === '/winter-solstice/'))) throw new Error();
-        target = readInvite(pasted.hash);
-      } catch { return loginFeedback('请粘贴从小屋里复制的完整专属链接。'); }
-    }
-    if (target.secret.length < 32 || target.secret.length > 128) return loginFeedback('口令不完整，请使用原来的小屋口令或完整专属链接。');
-    loginBusy = true; loginFeedback('正在确认小屋，稍等一下。',true);
+    if (!cloud?.address) return loginFeedback('登录信息暂未载入，请刷新页面。');
+    loginBusy=true; loginFeedback('正在确认账号，稍等一下。',true);
+    let target;
     try {
-      await api('/room',{},target);
-      connection = target; connectionRevision++; identity = selectedIdentity;
-      remember = by('rememberLogin').checked;
-      localOnly = false; localPhotosChecked = false;
-      connected = false; sharedMessages = []; media = []; await refresh();
-      by('sharedSpaceSecret').value = ''; loginFeedback(); toast('欢迎回家，' + (identity === 'partner' ? state.partner : state.me) + '。');
-    } catch (error) { loginFeedback(error instanceof TypeError ? '暂时连不上小屋，请检查网络后再试。' : error.message); }
-    finally { loginBusy = false; displayMode(); }
+      const username=by('loginUsername').value.normalize('NFKC').trim().toLowerCase();
+      const email=await window.QXNN_ACCOUNT_EMAIL(username);
+      target={...cloud,username,email,password:by('loginPassword').value};
+      const room=await api('/room',{},target);
+      if(!['me','partner'].includes(room.identity))throw new Error('这个账号尚未加入小屋。');
+      connection=target; connectionRevision++; identity=room.identity;
+      remember=by('rememberLogin').checked;
+      localOnly=false; localPhotosChecked=false;remoteProfile=null;pendingProfile=null;
+      connected=false;sharedMessages=[];media=[]; await refresh();
+      by('loginPassword').value='';loginFeedback();toast('欢迎回家，'+(identity==='partner'?state.partner:state.me)+'。');
+    } catch(error) {
+      loginFeedback(error instanceof TypeError?'暂时连不上小屋，请检查网络后再试。':error.message);
+    } finally { if(target)target.password='';loginBusy=false;displayMode(); }
   });
   by('toggleLoginSecret').addEventListener('click',() => {
-    const show = by('sharedSpaceSecret').type === 'password';
-    by('sharedSpaceSecret').type = show ? 'text' : 'password';
+    const show = by('loginPassword').type === 'password';
+    by('loginPassword').type = show ? 'text' : 'password';
     by('toggleLoginSecret').textContent = show ? '隐藏' : '显示';
-    by('toggleLoginSecret').setAttribute('aria-label',show ? '隐藏口令' : '显示口令');
+    by('toggleLoginSecret').setAttribute('aria-label',show ? '隐藏密码' : '显示密码');
     by('toggleLoginSecret').setAttribute('aria-pressed',String(show));
   });
   function disconnectLogin() {
     if (uploadController || loginBusy) return;
-    for (const store of [localStorage,sessionStorage]) { try { store.removeItem(connectionKey); store.removeItem(identityKey); } catch {} }
+    for (const store of [localStorage,sessionStorage]) { try { store.removeItem(connectionKey); } catch {} }
+    if(connection)window.getSupabaseRoom(connection).logout();
     connection = null; identity = null; connected = false; sharedMessages = []; media = []; connectionRevision++;
     remoteProfile = null; pendingProfile = null;
     localOnly = true; localPhotosChecked = false;
-    by('sharedSpaceSecret').value = ''; by('sharedSpaceDialog').close();
-    by('sharedSpaceSecret').type = 'password'; by('toggleLoginSecret').textContent = '显示'; by('toggleLoginSecret').setAttribute('aria-pressed','false'); by('toggleLoginSecret').setAttribute('aria-label','显示口令');
-    by('loginIdentity').value = ''; loginFeedback('已退出登录，照片和留言都好好保留着。');
+    by('loginPassword').value = ''; by('sharedSpaceDialog').close();
+    by('loginPassword').type = 'password'; by('toggleLoginSecret').textContent = '显示'; by('toggleLoginSecret').setAttribute('aria-pressed','false'); by('toggleLoginSecret').setAttribute('aria-label','显示密码');
+    loginFeedback('已退出登录，照片和留言都好好保留着。');
     status('本机留言 · 连接共享空间后，两部手机才能互相看到。');
     storageSummary = ''; displayMode(); renderMessages(); renderMedia();
   }
@@ -400,18 +370,7 @@
   });
   function uploadPart(path, blob, signal, onProgress) {
     if (connection?.provider === 'supabase') return window.getSupabaseRoom(connection).uploadPart(path,blob,signal,onProgress);
-    return new Promise((resolve,reject) => {
-      const request = new XMLHttpRequest(); request.open('PUT',connection.address + path); request.setRequestHeader('Authorization','Bearer ' + connection.secret); request.timeout = 180000;
-      const cancel = () => request.abort(); signal.addEventListener('abort',cancel,{once:true});
-      const done = () => signal.removeEventListener('abort',cancel);
-      request.upload.onprogress = event => { if (event.lengthComputable) onProgress(event.loaded); };
-      request.onload = () => { done(); try { const result = JSON.parse(request.responseText); if (request.status < 200 || request.status >= 300) throw new Error(result.error || '这段文件未能上传，请重试。'); resolve(result); } catch (error) { reject(error); } };
-      request.onerror = () => { done(); reject(new Error('网络中断，请检查连接后重新上传。')); };
-      request.ontimeout = () => { done(); reject(new Error('网络较慢，上传超时，请重试。')); };
-      request.onabort = () => { done(); reject(new DOMException('已取消上传。','AbortError')); };
-      if (signal.aborted) { done(); reject(new DOMException('已取消上传。','AbortError')); return; }
-      request.send(blob);
-    });
+    throw new Error('上传连接暂未准备好，请重新登录。');
   }
   by('cancelSharedUpload').addEventListener('click',() => uploadController?.abort());
   async function uploadFiles(files,onUploaded) {
@@ -471,7 +430,7 @@
     const key = 'our-little-world-migrated-messages-' + connection.address;
     try {
       const imported = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
-      for (const note of state.messages || []) {
+      for (const note of (state.messages || []).filter(entry => entry.author === identity)) {
         if (imported.has(note.id)) continue;
         await api('/messages',{method:'POST',body:JSON.stringify({author:note.author,text:note.text})});
         imported.add(note.id); localStorage.setItem(key,JSON.stringify([...imported]));
@@ -481,55 +440,35 @@
     finally { migrationBusy = false; displayMode(); }
   });
   async function copyInvite() {
-    if (!connected) return;
-    const data = {address:connection.address,secret:connection.secret,provider:connection.provider,anonKey:connection.anonKey,email:connection.email,bucket:connection.bucket};
-    const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    const fragment = connection.provider === 'supabase' && cloud?.address === connection.address ? '#key=' + encodeURIComponent(connection.secret) : '#room=' + encoded;
-    const link = location.origin + location.pathname + '?v=20261112-letter-card' + fragment;
-    try { await navigator.clipboard.writeText(link); toast('两人专属链接已复制，对方首次打开即可自动记住小屋。'); }
-    catch {
-      by('roomInvite').value = link; by('roomInviteField').hidden = false; by('roomInvite').focus(); by('roomInvite').select();
-      toast('专属链接已显示，请长按或选中复制。');
-    }
+    const link=location.origin+location.pathname+'?v=20261112-personal';
+    try { await navigator.clipboard.writeText(link);toast('小屋网址已复制，对方使用自己的账号登录即可。'); }
+    catch { by('roomInvite').value=link;by('roomInviteField').hidden=false;by('roomInvite').focus();by('roomInvite').select();toast('网址已显示，可以长按复制。'); }
   }
   by('copyAlbumInvite').addEventListener('click',copyInvite);
   window.addEventListener('our-world-state',() => { renderMessages(); displayMode(); saveProfile(); });
   window.addEventListener('beforeunload',event => { if (uploadController) { event.preventDefault(); event.returnValue = ''; } });
-  try {
-    const saved = JSON.parse(sessionStorage.getItem(connectionKey) || localStorage.getItem(connectionKey));
-    remember = !sessionStorage.getItem(connectionKey);
-    const store = remember ? localStorage : sessionStorage;
-    const savedIdentity = store.getItem(identityKey);
-    if (['me','partner'].includes(savedIdentity)) identity = savedIdentity;
-    if (saved && /^https:\/\//.test(saved.address) && typeof saved.secret === 'string') connection = saved;
-  } catch {}
-  by('rememberLogin').checked = remember;
-  by('loginIdentity').value = identity || '';
-  function consumeInvite() {
-    try {
-      if (!location.hash.startsWith('#room=') && !location.hash.startsWith('#key=')) return false;
-      const invite = readInvite(location.hash);
-      connection = invite;
-      connectionRevision++; connected = false; localOnly = false; localPhotosChecked = false;
-      status('正在确认两个人的小屋…');
-      remoteProfile = null; pendingProfile = null;
-      history.replaceState(null,'',location.pathname + location.search + '#photos');
-      return true;
-    } catch {
-      history.replaceState(null,'',location.pathname + location.search);
-      loginFeedback('邀请链接无法识别，请使用对方重新复制的链接。'); return false;
-    }
+  // Drop only the retired login credentials; keep every local photo and record.
+  for(const store of [localStorage,sessionStorage]) {
+    try { store.removeItem('our-little-world-shared-connection-v1');store.removeItem('our-little-world-login-identity-v1'); } catch {}
   }
-  consumeInvite();
-  window.addEventListener('hashchange',() => {
-    if (consumeInvite()) { connectionFields(); displayMode(); loginFeedback('正在连接小屋…',true); refresh().catch(error => { loginFeedback(error.message); }).finally(() => { by('connectSharedSpace').disabled = false; }); }
-  });
+  try {
+    const saved=JSON.parse(sessionStorage.getItem(connectionKey)||localStorage.getItem(connectionKey));
+    remember=!sessionStorage.getItem(connectionKey);
+    if(saved?.address===cloud?.address && saved?.session?.refresh_token && saved?.session?.user?.id)connection={...cloud,...saved};
+  } catch {}
+  by('rememberLogin').checked=remember;
+  by('loginUsername').value=connection?.username||'';
+  if(location.hash.startsWith('#key=')||location.hash.startsWith('#room=')) {
+    history.replaceState(null,'',location.pathname+location.search);
+    loginFeedback('现在请使用自己的账号和密码登录，旧连接口令已停用。');
+  }
+  window.addEventListener('our-world-session',()=>{if(connection&&connected)persistLogin();});
   window.ourSharedSpace = {
     hasCloud:() => Boolean(cloud?.address || connection),
     chooseMedia:() => { if (uploadController || migrationBusy) return; if (connected) by('sharedMediaInput').click(); else { connectionFields(); openDialog('sharedSpaceDialog'); } }
   };
   connectionFields(); localNames(); displayMode(); renderMessages(); renderMedia();
-  if (connection) { loginFeedback('正在连接小屋…',true); refresh().then(() => { if (identity) loginFeedback(); }).catch(error => { loginFeedback(error instanceof TypeError ? '暂时连不上小屋，请检查网络，或重新输入口令。' : error.message); }).finally(() => { by('connectSharedSpace').disabled = false; }); }
+  if (connection) { loginFeedback('正在连接小屋…',true); refresh().then(() => { if (identity) loginFeedback(); }).catch(error => { loginFeedback(error instanceof TypeError ? '暂时连不上小屋，请检查网络，或重新登录。' : error.message); }).finally(() => { by('connectSharedSpace').disabled = false; }); }
   else if (cloud?.address) {
     status('免费小屋已开通 · 连接后查看共同留言，下面暂显示本机记录。');
   } else loginFeedback('登录信息暂未载入，请检查网络后刷新页面。');
