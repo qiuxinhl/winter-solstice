@@ -36,7 +36,7 @@
   by('anniversaryForm').prepend(birthdayFields);by('anniversaryForm').prepend(kindLabel);
   function birthdayMode(){const birthday=by('anniversaryKind').value==='birthday';birthdayFields.hidden=!birthday;by('anniversaryName').closest('label').hidden=birthday;by('anniversaryName').required=!birthday;by('anniversaryPersonNameField').hidden=!birthday||by('anniversaryPerson').value!=='custom';by('anniversaryPersonName').required=birthday&&by('anniversaryPerson').value==='custom';}
   by('anniversaryKind').addEventListener('change',birthdayMode);by('anniversaryPerson').addEventListener('change',birthdayMode);
-  function fill(item=null){editing=item?.id||null;by('anniversaryTitle').textContent=item?'修改这个纪念日':'添加一个纪念日';by('anniversaryName').value=item?.name||'';by('anniversaryDate').value=item?.date||today();by('anniversaryYearly').checked=item?.yearly??true;by('anniversaryKind').value=item?.kind||(/生日/.test(item?.name||'')?'birthday':'custom');by('anniversaryPerson').value=item?.person||'me';by('anniversaryPersonName').value=item?.personName||'';birthdayMode();}
+  function fill(item=null){editing=item?.id||null;by('anniversaryTitle').textContent=item?'修改这个纪念日':'添加一个纪念日';by('anniversaryName').value=item?.name||'';by('anniversaryDate').value=item?.date||today();by('anniversaryYearly').checked=item?.yearly??true;by('anniversaryKind').value=item?.kind||(/生日/.test(item?.name||'')?'birthday':'custom');by('anniversaryPerson').value=item?.person||window.QXNN_PEOPLE.selfKey();by('anniversaryPersonName').value=item?.personName||'';birthdayMode();}
   document.querySelectorAll('[data-open="anniversaryDialog"]').forEach(button=>button.addEventListener('click',()=>fill()));
   by('anniversaryForm').addEventListener('submit',event=>{
     event.preventDefault();
@@ -48,7 +48,7 @@
     }catch(error){toast(error.message);}
   });
   function render(){
-    by('anniversaryPerson').options[0].textContent=state.me;by('anniversaryPerson').options[1].textContent=state.partner;
+    for(const key of ['me','partner']){const name=window.QXNN_PEOPLE.name(key);by('anniversaryPerson').querySelector('[value="'+key+'"]').textContent=['我','对方'].includes(name)?name:name+(key===window.QXNN_PEOPLE.selfKey()?'（我）':'（对方）');}
     const list=by('anniversaryList');list.replaceChildren();
     const items=(state.anniversaries||[]).map(item=>({...item,...timing(item)})).sort((a,b)=>Math.abs(a.days)-Math.abs(b.days));
     if(!items.length){const empty=document.createElement('p');empty.className='anniversary-empty';empty.textContent='还没有添加其他纪念日。把想一起记住的日子，放在这里吧。';list.append(empty);return;}
@@ -56,7 +56,7 @@
       const card=document.createElement('article');card.className='anniversary-card';
       const top=document.createElement('div');top.className='anniversary-card-top';
       const icon=document.createElement('span');icon.className='anniversary-icon';icon.textContent=item.kind==='birthday'?'🎂':'♡';icon.setAttribute('aria-hidden','true');
-      const person=item.person==='me'?state.me:item.person==='partner'?state.partner:item.personName;
+      const person=['me','partner'].includes(item.person)?window.QXNN_PEOPLE.name(item.person):item.personName;
       const title=item.kind==='birthday'?(person?person+'的生日':'生日 · 请补充姓名'):item.name;
       const name=document.createElement('h4');name.textContent=title;top.append(icon,name);
       const value=document.createElement('p');value.className='anniversary-count';
@@ -81,5 +81,6 @@
   }
   window.QXNN_ANNIVERSARIES=Object.freeze({normalize,timing});
   window.addEventListener('our-world-state',render);
+  window.addEventListener('our-world-connection',render);
   let renderedDay=today();setInterval(()=>{if(document.hidden)return;if(renderedDay!==today()){renderedDay=today();render();}else tick();},1000);
 })();

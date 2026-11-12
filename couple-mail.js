@@ -13,7 +13,7 @@
   reader.innerHTML=`<div class="dialog-head"><h2>拆开一封小小的想念</h2><button class="icon-button" data-close aria-label="收好这封信">×</button></div><div class="dialog-body letter-reading"><div class="opening-envelope" aria-hidden="true"><span class="opening-flap"></span><span class="envelope-seal">♥</span><span class="envelope-caption">只寄给你</span></div><article class="cute-paper" id="readLetterPaper"><div class="paper-decoration" aria-hidden="true">♡ · ✿ · ♡</div><p id="readLetterMeta" class="read-letter-meta"></p><h2 id="readLetterTitle"></h2><div id="readLetterBody" class="read-letter-body"></div><p class="letter-signature" id="readLetterSignature"></p><p class="paper-footer">把这份喜欢，折进日常里 ♡</p></article><p id="readLetterStatus" role="status"></p></div>`;
   document.body.append(compose,reader);
   let letters=[],tab='inbox',identity=null,connected=false,revision=0,sourceRevision=-1,busy=false,sending=false,draftId=null,lastLoaded=false,queued=false;
-  const name=who=>who==='me'?state.me:state.partner;
+  const name=who=>window.QXNN_PEOPLE.name(who);
   const fmt=value=>new Date(value).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
   const draftKey=()=> 'qxnn-letter-draft-v1:'+identity;
   function draft(){return {id:draftId,subject:by('letterSubject').value,body:by('letterBody').value,style:compose.querySelector('[name="letterPaper"]:checked').value};}

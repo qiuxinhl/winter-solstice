@@ -321,8 +321,8 @@
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
-  <link rel="stylesheet" href="shared-space.css?v=20261112-mailbox">
-  <link rel="stylesheet" href="couple-world.css?v=20261112-mailbox">
+  <link rel="stylesheet" href="shared-space.css?v=20261112-perspective">
+  <link rel="stylesheet" href="couple-world.css?v=20261112-perspective">
 </head>
 <body>
   <section class="login-page" id="loginPage" aria-labelledby="loginTitle">
@@ -492,19 +492,19 @@
     <div class="heart-corner"><button class="heart-button" id="heartButton" aria-label="点一下，收下一句心意"><svg class="icon"><use href="#heart"/></svg></button><p id="heartMessage">轻轻点一下，收下一点喜欢。</p></div>
     <footer class="site-footer"><span>为<span data-partner>邬小姐</span>认真留下一点心意。</span><span>本机内容存在当前浏览器；共享内容以小屋连接状态为准。</span><button class="footer-settings motion-toggle" id="motionToggle" aria-pressed="false"><span class="motion-dot" aria-hidden="true"></span><span id="motionLabel">暂停动效</span></button><button class="footer-settings" data-open="settingsDialog">小站设置与备份</button></footer>
   </main>
-  <dialog id="settingsDialog" aria-labelledby="settingsTitle"><div class="dialog-head"><h2 id="settingsTitle">写下我们的故事</h2><button class="icon-button" data-close aria-label="关闭设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><form id="settingsForm"><div class="form-grid"><label class="form-field">你的称呼<input id="nameInput" maxlength="12" autocomplete="off" required></label><label class="form-field">她的称呼<input id="partnerInput" maxlength="12" autocomplete="off" required></label></div><label class="form-field">我们在一起的第一天<input id="dateInput" type="date"></label><p class="form-help">还没决定从哪天开始？可以先留空。称呼和日期随时都能再改。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>再想想</button><button class="primary" type="submit">保存这份心意</button></div></form><div class="backup-tools"><button id="exportBackup">保存一份备份</button><button id="importBackup">从备份恢复</button></div><p class="form-help" style="margin:10px 0 0">备份包含称呼、日期、本机照片、心愿、记事和本机留言，不含云端照片视频。换设备时，可以用它带走本机记录。</p><input id="backupInput" type="file" accept="application/json,.json" hidden></div></dialog>
+  <dialog id="settingsDialog" aria-labelledby="settingsTitle"><div class="dialog-head"><h2 id="settingsTitle">写下我们的故事</h2><button class="icon-button" data-close aria-label="关闭设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><form id="settingsForm"><div class="form-grid"><label class="form-field">我的称呼<input id="nameInput" maxlength="12" autocomplete="off" required></label><label class="form-field">对方的称呼<input id="partnerInput" maxlength="12" autocomplete="off" required></label></div><label class="form-field">我们在一起的第一天<input id="dateInput" type="date"></label><p class="form-help">还没决定从哪天开始？可以先留空。称呼和日期随时都能再改。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>再想想</button><button class="primary" type="submit">保存这份心意</button></div></form><div class="backup-tools"><button id="exportBackup">保存一份备份</button><button id="importBackup">从备份恢复</button></div><p class="form-help" style="margin:10px 0 0">备份包含称呼、日期、本机照片、心愿、记事和本机留言，不含云端照片视频。换设备时，可以用它带走本机记录。</p><input id="backupInput" type="file" accept="application/json,.json" hidden></div></dialog>
   <dialog id="memoryDialog" aria-labelledby="memoryDialogTitle"><div class="dialog-head"><h2 id="memoryDialogTitle">记下一件小事</h2><button class="icon-button" data-close aria-label="关闭记事"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><form id="memoryForm"><label class="form-field">给这一天起个名字<input id="memoryTitleInput" maxlength="30" placeholder="比如：今天一起走了好长一段路" required></label><label class="form-field">发生在哪一天<input id="memoryDateInput" type="date" required></label><label class="form-field">还想记住什么<textarea id="memoryTextInput" maxlength="220" placeholder="天气、说过的话，或一个让你心动的小细节…"></textarea></label><p class="form-help">只记下你们真实发生的小事，每一件都可以慢慢补充。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>先不写了</button><button class="primary" type="submit">把这一天存好</button></div></form></div></dialog>
   <dialog id="letterDialog" aria-labelledby="letterTitle"><div class="dialog-head"><h2 id="letterTitle">一封写给你的信</h2><button class="icon-button" data-close aria-label="合上信"><svg class="icon"><use href="#close"/></svg></button></div><div class="letter-tabs" role="tablist" aria-label="信件版本"><button class="letter-tab" id="originalTab" role="tab" aria-selected="true" aria-controls="letterContent" data-letter="original">文档原信</button><button class="letter-tab" id="winterTab" role="tab" aria-selected="false" aria-controls="letterContent" data-letter="winter" tabindex="-1">立冬寄语</button></div><article class="letter-full" id="letterContent" role="tabpanel" aria-labelledby="originalTab"></article></dialog>
   <dialog id="photoDialog" aria-labelledby="photoTitle"><div class="dialog-head"><h2 id="photoTitle">收藏这一刻</h2><button class="icon-button" data-close aria-label="关闭照片"><svg class="icon"><use href="#close"/></svg></button></div><img class="viewer-image" id="viewerImage" alt="收藏的照片"><div class="dialog-body"><div class="viewer-nav"><button class="secondary" id="previousPhoto">上一张</button><span id="photoPosition"></span><button class="secondary" id="nextPhoto">下一张</button></div><form id="captionForm"><label class="form-field">给这一刻写一句话<input id="captionInput" maxlength="60" placeholder="比如：想把这一刻，一直记住。"></label><div class="dialog-actions"><button class="secondary danger" type="button" id="deletePhoto">移出相册</button><button class="primary" type="submit">保存这一刻</button></div></form></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">小屋设置</h2><button class="icon-button" data-close aria-label="关闭小屋设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help" id="roomLoginSummary">已登录两个人的小屋。</p><p class="form-help">退出后，这台设备需要重新登录。云端照片和留言、本机原有记录都会保留。请使用各自的账号登录，留言会自动署名。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>继续逛逛</button><button class="primary" type="button" id="disconnectSharedSpace">退出登录</button></div></div></dialog>
   <script src="vendor/lunar.js"></script>
-  <script src="mood-notes.js?v=20261112-mailbox"></script>
-  <script src="couple-time.js?v=20261112-mailbox"></script>
-  <script src="date-ideas.js?v=20261112-mailbox"></script>
-  <script src="couple-mail.js?v=20261112-mailbox"></script>
-  <script src="anniversaries.js?v=20261112-mailbox"></script>
-  <script src="cloud-config.js?v=20261112-mailbox"></script>
+  <script src="mood-notes.js?v=20261112-perspective"></script>
+  <script src="couple-time.js?v=20261112-perspective"></script>
+  <script src="date-ideas.js?v=20261112-perspective"></script>
+  <script src="couple-mail.js?v=20261112-perspective"></script>
+  <script src="anniversaries.js?v=20261112-perspective"></script>
+  <script src="cloud-config.js?v=20261112-perspective"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
@@ -963,11 +963,24 @@
       });
     }
 
+    function currentPersonKey() { return window.ourSharedSpace?.identity() === 'partner' ? 'partner' : 'me'; }
+    function otherPersonKey() { return currentPersonKey() === 'me' ? 'partner' : 'me'; }
+    function personDisplayName(key) {
+      const value = state[key];
+      return ['我','你','她','他','对方'].includes(value) ? (key === currentPersonKey() ? '我' : '对方') : value;
+    }
+    window.QXNN_PEOPLE = Object.freeze({selfKey:currentPersonKey,otherKey:otherPersonKey,name:personDisplayName});
+    function renderPeople() {
+      const self = personDisplayName(currentPersonKey()), other = personDisplayName(otherPersonKey());
+      document.querySelectorAll('[data-partner]').forEach(element => element.textContent = other);
+      byId('myName').textContent = self;
+      byId('myName').setAttribute('aria-label','我：' + self);
+      byId('myAvatar').textContent = Array.from(self)[0];
+      byId('partnerAvatar').textContent = Array.from(other)[0];
+    }
+    window.addEventListener('our-world-connection',renderPeople);
     function render() {
-      document.querySelectorAll('[data-partner]').forEach(element => element.textContent = state.partner);
-      byId('myName').textContent = state.me;
-      byId('myAvatar').textContent = Array.from(state.me)[0];
-      byId('partnerAvatar').textContent = Array.from(state.partner)[0];
+      renderPeople();
       document.title = 'QXNN';
       updateClock();
       renderGallery();
@@ -979,8 +992,13 @@
     function openDialog(identifier) {
       const dialog = byId(identifier);
       if (identifier === 'settingsDialog') {
-        byId('nameInput').value = state.me;
-        byId('partnerInput').value = state.partner;
+        dialog.dataset.profileIdentity = currentPersonKey();
+        [['nameInput',currentPersonKey()],['partnerInput',otherPersonKey()]].forEach(([id,key]) => {
+          const input = byId(id);
+          input.value = personDisplayName(key);
+          input.dataset.originalName = state[key];
+          input.dataset.originalDisplay = input.value;
+        });
         byId('dateInput').value = state.startDate;
         byId('dateInput').max = todayString();
       }
@@ -1099,8 +1117,11 @@
     });
     byId('settingsForm').addEventListener('submit', event => {
       event.preventDefault();
-      const me = byId('nameInput').value.trim();
-      const partner = byId('partnerInput').value.trim();
+      if (byId('settingsDialog').dataset.profileIdentity !== currentPersonKey()) return toast('登录身份已变化，请重新打开设置。');
+      const inputName = id => byId(id).value.trim() === byId(id).dataset.originalDisplay ? byId(id).dataset.originalName : byId(id).value.trim();
+      const self = inputName('nameInput'), other = inputName('partnerInput');
+      const me = currentPersonKey() === 'me' ? self : other;
+      const partner = currentPersonKey() === 'me' ? other : self;
       const startDate = byId('dateInput').value;
       if (!me || !partner) return toast('请给两个人各留一个称呼。');
       if (startDate && !validDate(startDate)) return toast('请选择今天或更早的真实日期。');
@@ -1238,9 +1259,9 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
-  <script src="mail-codec.js?v=20261112-mailbox"></script>
-  <script src="supabase-room.js?v=20261112-mailbox"></script>
-  <script src="shared-space.js?v=20261112-mailbox"></script>
-  <script src="world-effects.js?v=20261112-mailbox"></script>
+  <script src="mail-codec.js?v=20261112-perspective"></script>
+  <script src="supabase-room.js?v=20261112-perspective"></script>
+  <script src="shared-space.js?v=20261112-perspective"></script>
+  <script src="world-effects.js?v=20261112-perspective"></script>
 </body>
 </html>

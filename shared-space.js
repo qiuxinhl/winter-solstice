@@ -25,14 +25,14 @@
   const by = id => document.getElementById(id);
   const bytes = size => size >= 1e9 ? (size / 1e9).toFixed(2) + ' GB' : size >= 1e6 ? (size / 1e6).toFixed(1) + ' MB' : (size / 1000).toFixed(1) + ' KB';
   function localNames() {
-    by('messageAuthor').options[0].textContent = state.me;
-    by('messageAuthor').options[1].textContent = state.partner;
+    by('messageAuthor').options[0].textContent = window.QXNN_PEOPLE.name('me');
+    by('messageAuthor').options[1].textContent = window.QXNN_PEOPLE.name('partner');
     if (identity) by('messageAuthor').value = identity;
     by('messageAuthor').disabled = connected;
-    const author = identity === 'partner' ? state.partner : state.me;
+    const author = window.QXNN_PEOPLE.name(identity || 'me');
     by('messageSenderName').textContent = author;
     by('messageSenderAvatar').textContent = Array.from(author)[0] || '♡';
-    by('messageRecipientName').textContent = identity === 'partner' ? state.me : state.partner;
+    by('messageRecipientName').textContent = window.QXNN_PEOPLE.name(identity === 'partner' ? 'me' : 'partner');
     by('messageForm').dataset.author = identity || 'me';
   }
   function loginFeedback(message = '', busy = false) {
@@ -60,7 +60,7 @@
     by('loginPassword').required = true;
     if (!unlocked) document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
     if (connected) {
-      by('roomLoginSummary').textContent = '当前身份：' + (identity === 'partner' ? state.partner : state.me) + '。' + (remember ? '这台设备已记住登录。' : '本次登录仅在当前标签页保留。');
+      by('roomLoginSummary').textContent = '当前身份：' + (window.QXNN_PEOPLE.name(identity || 'me')) + '。' + (remember ? '这台设备已记住登录。' : '本次登录仅在当前标签页保留。');
     }
     if (unlocked && wasLocked) {
       by('loginPassword').value = '';
@@ -146,7 +146,7 @@
       item.dataset.self = String(message.author === identity);
       const top = document.createElement('div'); top.className = 'message-item-top';
       const avatar = document.createElement('span'); avatar.className = 'message-avatar';
-      const author = document.createElement('span'); author.textContent = message.author === 'partner' ? state.partner : state.me;
+      const author = document.createElement('span'); author.textContent = window.QXNN_PEOPLE.name(message.author);
       avatar.textContent = Array.from(author.textContent)[0];
       const time = document.createElement('time'); time.dateTime = message.createdAt;
       time.textContent = new Date(message.createdAt).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
@@ -334,7 +334,7 @@
       remember=by('rememberLogin').checked;
       localOnly=false; localPhotosChecked=false;remoteProfile=null;pendingProfile=null;
       connected=false;sharedMessages=[];media=[]; await refresh();
-      by('loginPassword').value='';loginFeedback();toast('欢迎回家，'+(identity==='partner'?state.partner:state.me)+'。');
+      by('loginPassword').value='';loginFeedback();toast('欢迎回家，'+(window.QXNN_PEOPLE.name(identity || 'me'))+'。');
     } catch(error) {
       loginFeedback(error instanceof TypeError?'暂时连不上小屋，请检查网络后再试。':error.message);
     } finally { if(target)target.password='';loginBusy=false;displayMode(); }
@@ -441,7 +441,7 @@
     finally { migrationBusy = false; displayMode(); }
   });
   async function copyInvite() {
-    const link=location.origin+location.pathname+'?v=20261112-mailbox';
+    const link=location.origin+location.pathname+'?v=20261112-perspective';
     try { await navigator.clipboard.writeText(link);toast('小屋网址已复制，对方使用自己的账号登录即可。'); }
     catch { by('roomInvite').value=link;by('roomInviteField').hidden=false;by('roomInvite').focus();by('roomInvite').select();toast('网址已显示，可以长按复制。'); }
   }
