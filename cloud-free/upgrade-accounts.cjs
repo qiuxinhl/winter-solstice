@@ -64,7 +64,12 @@ async function main(){
     const anon=configScope.window.OUR_WORLD_CLOUD.anonKey;
     for(const who of ['me','partner']){
       const session=await requestJson({origin:address,route:'/auth/v1/token?grant_type=password',method:'POST',bearer:anon,apiKey:anon,body:{email:accountEmail(input[who].username),password:input[who].password},label:'核验个人账号登录'});
-      const read=(route,args={})=>requestJson({origin:address,route,bearer:session.access_token,apiKey:anon,label:'核验共享数据权限',...args});
+      const read=async(route,args={})=>{
+        for(let attempt=0;attempt<15;attempt++){
+          try{return await requestJson({origin:address,route,bearer:session.access_token,apiKey:anon,label:'核验共享数据权限',...args});}
+          catch(error){if(error.status!==404||attempt===14)throw error;await new Promise(resolve=>setTimeout(resolve,1000));}
+        }
+      };
       const member=await read('/rest/v1/rpc/couple_current_member',{method:'POST',body:{}});
       if(member.identity!==who||member.ownerId!==original.id)throw new SafeSetupError('账号身份核验失败。');
       await read('/rest/v1/couple_media?select=id&limit=1');
