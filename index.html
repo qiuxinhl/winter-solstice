@@ -318,7 +318,7 @@
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
-  <link rel="stylesheet" href="shared-space.css">
+  <link rel="stylesheet" href="shared-space.css?v=20261112-photo-sync">
 </head>
 <body>
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
@@ -420,7 +420,7 @@
       <div class="section-header"><div><span class="section-number">03 / 值得收藏的瞬间</span><h2>每一张，都很喜欢</h2><p class="section-desc">照片会替我们，记住那些舍不得忘的日常。</p></div><button class="text-link" id="uploadPhoto"><svg class="icon"><use href="#plus"/></svg>放入照片</button></div>
       <input id="photoInput" type="file" accept="image/*" multiple hidden>
       <div class="shared-status" id="photoSyncNotice">本机相册 · 这里原有的照片保留在当前设备，连接小屋后可以上传共享。</div>
-      <div class="photo-shared-tools" id="photoSharedTools"><button class="secondary" id="migrateLocalPhotos" hidden>将本机照片上传到共享相册</button><button class="text-link" id="showLocalPhotos" hidden>查看本机原有照片</button></div>
+      <div class="photo-shared-tools" id="photoSharedTools"><button class="secondary" id="refreshAlbum" disabled>刷新共享相册</button><button class="text-link" id="copyAlbumInvite" hidden>在微信查看</button><button class="text-link" data-open="sharedSpaceDialog">连接小屋</button><button class="secondary" id="migrateLocalPhotos" hidden>将本机照片上传到共享相册</button><button class="text-link" id="showLocalPhotos" hidden>查看本机原有照片</button></div>
       <p class="form-help" id="localPhotosLabel">本机照片，仅当前设备可见。</p>
       <div class="gallery" id="gallery"></div>
     </section>
@@ -461,7 +461,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">连接两个人的小屋</h2><button class="icon-button" data-close aria-label="关闭共享空间设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help">连接同一个云端空间后，你们就能互相留言、上传和查看照片视频。口令仅保存在当前浏览器，请只告诉对方。</p><form id="sharedSpaceForm"><label class="form-field" id="sharedSpaceAddressField">空间地址<input id="sharedSpaceAddress" type="url" placeholder="https://你们的空间地址" autocomplete="url" required></label><label class="form-field">小屋口令<input id="sharedSpaceSecret" type="password" minlength="32" maxlength="128" autocomplete="off" required></label><p class="form-help" id="sharedConnectionHelp">连接小屋后，照片、视频和留言才能跨设备查看。</p><div class="dialog-actions"><button class="secondary" type="button" id="disconnectSharedSpace">使用本机留言</button><button class="primary" type="submit" id="connectSharedSpace">连接小屋</button></div></form></div></dialog>
   <script src="vendor/lunar.js"></script>
-  <script src="cloud-config.js"></script>
+  <script src="cloud-config.js?v=20261112-photo-sync"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
@@ -1206,7 +1206,7 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
-  <script src="supabase-room.js"></script>
-  <script src="shared-space.js"></script>
+  <script src="supabase-room.js?v=20261112-photo-sync"></script>
+  <script src="shared-space.js?v=20261112-photo-sync"></script>
 </body>
 </html>

@@ -99,9 +99,10 @@
         const result = await request('/storage/v1/object/sign/' + bucket + '/' + file.path,{method:'POST',body:JSON.stringify({expiresIn:43200})});
         const signed = result.signedURL || result.signedUrl;
         if (!signed) throw new Error('暂时无法打开这个文件，请刷新相册。');
-        const url = new URL(/^https:\/\//.test(signed) ? signed : address + '/storage/v1' + signed);
+        const url = new URL(/^https:\/\//i.test(signed) ? signed : signed.startsWith('/storage/v1/') ? signed : '/storage/v1/' + signed.replace(/^\//,''),address);
+        if (url.origin !== new URL(address).origin) throw new Error('图片链接来源不正确，请刷新相册。');
         if (data.download) url.searchParams.set('download',file.name);
-        return {url:url.href};
+        return {url:url.href,expiresAt:Date.now()+43200000};
       }
       const item = /^\/media\/([^/]+)$/.exec(path);
       if (item && method === 'DELETE') return removeMedia(item[1]);

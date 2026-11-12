@@ -15,6 +15,8 @@
   let applyingProfile = false;
   let migrationBusy = false;
   let localOnly = false;
+  let localPhotosChecked = false;
+  const previewLoaders = new Map();
   const by = id => document.getElementById(id);
   const bytes = size => size >= 1e9 ? (size / 1e9).toFixed(2) + ' GB' : size >= 1e6 ? (size / 1e6).toFixed(1) + ' MB' : (size / 1000).toFixed(1) + ' KB';
   function localNames() {
@@ -43,6 +45,8 @@
     by('disconnectSharedSpace').disabled = Boolean(uploadController);
     by('connectSharedSpace').disabled = Boolean(uploadController);
     by('copyRoomInvite').hidden = !connected;
+    by('copyAlbumInvite').hidden = !connected;
+    by('refreshAlbum').disabled = !connected || refreshBusy || Boolean(uploadController);
     by('migrateLocalPhotos').hidden = !connected || !state.photos.length;
     by('migrateLocalPhotos').disabled = !connected || Boolean(uploadController) || migrationBusy;
     by('migrateLocalMessages').hidden = !connected || !(state.messages || []).length;
@@ -52,7 +56,7 @@
       by('uploadPhoto').textContent = '上传照片或视频';
       if (by('gallery').nextElementSibling !== by('sharedMediaGrid')) by('gallery').after(by('sharedMediaGrid'));
       if (by('photoSharedTools').nextElementSibling !== by('sharedUpload')) by('photoSharedTools').after(by('sharedUpload'));
-      by('photoSyncNotice').textContent = '共享相册 · ' + by('sharedStorageText').textContent;
+      by('photoSyncNotice').textContent = '共享相册 · 云端共 ' + media.length + ' 个文件 · ' + by('sharedStorageText').textContent;
       by('gallery').hidden = true;
       by('localPhotosLabel').hidden = true;
       by('showLocalPhotos').hidden = !state.photos.length;
@@ -128,10 +132,11 @@
     return api('/media/' + encodeURIComponent(id) + '/ticket',{method:'POST',body:JSON.stringify({download})});
   }
   function renderMedia() {
+    previewLoaders.clear();
     const grid = by('sharedMediaGrid'); grid.replaceChildren();
     if (!media.length) {
       const empty = document.createElement('p'); empty.className = 'shared-empty';
-      empty.textContent = connected ? '相册还是空的。放入一张合照，或一段想记住的视频吧。' : '共享相册尚未连接，暂不能上传照片视频。容量以实际开通的空间为准。';
+      empty.textContent = connected ? (state.photos.length ? '云端暂无照片，当前设备还有 ' + state.photos.length + ' 张本机照片。正在尝试同步，也可以点击上方“将本机照片上传到共享相册”。' : '云端暂无照片。若电脑能看到照片，请在电脑端连接同一个小屋并上传本机照片，再点“刷新共享相册”。') : '共享相册尚未连接，暂不能上传照片视频。容量以实际开通的空间为准。';
       grid.append(empty); return;
     }
     const revision = connectionRevision;
@@ -144,6 +149,34 @@
       preview.referrerPolicy = 'no-referrer';
       const name = document.createElement('p'); name.className = 'shared-media-name'; name.textContent = entry.name;
       const info = document.createElement('p'); info.className = 'shared-media-info'; info.textContent = (isVideo ? '视频 · ' : '照片 · ') + bytes(entry.size);
+      const baseInfo = info.textContent;
+      const retry = document.createElement('button'); retry.className = 'text-link'; retry.textContent = '重新加载'; retry.hidden = true;
+      let loading = false, attempts = 0, expiresAt = 0, failed = false;
+      const current = () => revision === connectionRevision && card.isConnected;
+      function showFailure() {
+        if (!current()) return;
+        failed = true; retry.hidden = false;
+        info.textContent = baseInfo + ' · 预览未加载，可重新加载或下载原文件。';
+      }
+      async function loadPreview() {
+        if (loading || !current()) return;
+        loading = true; retry.hidden = true; failed = false; info.textContent = baseInfo;
+        try {
+          const ticket = await mediaTicket(entry.id);
+          if (!current()) return;
+          const url = new URL(ticket.url);
+          if (attempts) url.searchParams.set('_refresh',String(Date.now()));
+          expiresAt = ticket.expiresAt || Date.now()+3600000;
+          preview.src = url.href;
+        } catch { showFailure(); }
+        finally { loading = false; }
+      }
+      retry.addEventListener('click',() => { attempts++; loadPreview(); });
+      preview.addEventListener('error',() => {
+        if (!current()) return;
+        if (!attempts) { attempts++; setTimeout(() => loadPreview(),400); }
+        else showFailure();
+      });
       const actions = document.createElement('div'); actions.className = 'shared-media-actions';
       const download = document.createElement('button'); download.className = 'text-link'; download.textContent = '下载原文件';
       download.addEventListener('click',async () => {
@@ -158,9 +191,9 @@
         try { if (isVideo) preview.pause(); await api('/media/' + entry.id,{method:'DELETE'}); await refresh(); }
         catch (error) { toast(error.message); remove.disabled = false; }
       });
-      actions.append(download,remove); card.append(preview,name,info,actions); grid.append(card);
-      mediaTicket(entry.id).then(ticket => { if (revision === connectionRevision && card.isConnected) preview.src = ticket.url; }).catch(() => { info.textContent += ' · 预览暂不可用，可重试刷新'; });
-      preview.addEventListener('error',() => { info.textContent = (isVideo ? '当前浏览器可能不支持此视频格式，可下载原文件。' : '当前浏览器可能不支持此图片格式，可下载原文件。'); },{once:true});
+      actions.append(retry,download,remove); card.append(preview,name,info,actions); grid.append(card);
+      previewLoaders.set(entry.id,() => { if (failed || (Date.now()>=expiresAt && (!isVideo || preview.paused))) { attempts++; loadPreview(); } });
+      loadPreview();
     });
   }
   async function refresh(forceMedia = false) {
@@ -170,14 +203,20 @@
     try {
       const [room,notes,album] = await Promise.all([api('/room',{},target),api('/messages',{},target),api('/media',{},target)]);
       if (target !== connection) return;
-      const mediaChanged = forceMedia || !connected || JSON.stringify(media) !== JSON.stringify(album.media);
+      const mediaChanged = !connected || JSON.stringify(media) !== JSON.stringify(album.media);
       connected = true; sharedMessages = notes.messages; media = album.media;
       await receiveProfile(room.profile);
       if (pendingProfile && !profileSaving) await saveProfile();
       status('已连接两个人的小屋 · 留言和照片视频可以跨设备查看。');
       by('sharedStorageText').textContent = '已用 ' + bytes(room.usedBytes) + ' / 可用上限 ' + bytes(room.maxBytes) + (room.maxFileBytes ? ' · 单个文件最多 ' + bytes(room.maxFileBytes) : '') + (room.pendingBytes ? ' · 正在上传 ' + bytes(room.pendingBytes) : '');
-      displayMode(); renderMessages(); if (mediaChanged) renderMedia();
-    } finally { refreshBusy = false; }
+      displayMode(); renderMessages();
+      if (mediaChanged) renderMedia();
+      else if (forceMedia) previewLoaders.forEach(reload => reload());
+      if (!localPhotosChecked && target.provider === 'supabase') {
+        localPhotosChecked = true;
+        setTimeout(() => { if (connection === target && connected && !uploadController) migrateLocalPhotos(); },0);
+      }
+    } finally { refreshBusy = false; displayMode(); }
   }
   by('messageText').addEventListener('input',() => { by('messageCounter').textContent = by('messageText').value.length + ' / 1000'; });
   by('messageForm').addEventListener('submit',async event => {
@@ -201,6 +240,10 @@
   by('refreshMessages').addEventListener('click',async () => {
     try { if (connection) await refresh(true); else renderMessages(); } catch (error) { status('暂时连不上小屋，已显示上次加载的内容。'); toast(error.message); }
   });
+  by('refreshAlbum').addEventListener('click',async () => {
+    try { await refresh(true); toast('已从云端刷新，共 ' + media.length + ' 个文件。'); }
+    catch { toast('暂时无法读取云端相册，请检查网络后重试。'); }
+  });
   function connectionFields() {
     by('sharedSpaceAddress').value = cloud?.address || connection?.address || '';
     by('sharedSpaceSecret').value = connection?.secret || '';
@@ -219,7 +262,7 @@
     try {
       await api('/room',{},target);
       localStorage.setItem(connectionKey,JSON.stringify(target)); connection = target; connectionRevision++;
-      localOnly = false;
+      localOnly = false; localPhotosChecked = false;
       connected = false; sharedMessages = []; media = []; await refresh();
       by('sharedSpaceDialog').close(); toast('已连接两个人的小屋。');
     } catch (error) { toast(error.message); }
@@ -228,7 +271,7 @@
   by('disconnectSharedSpace').addEventListener('click',() => {
     if (uploadController) return;
     localStorage.removeItem(connectionKey); connection = null; connected = false; sharedMessages = []; media = []; connectionRevision++;
-    localOnly = true;
+    localOnly = true; localPhotosChecked = false;
     by('sharedSpaceSecret').value = ''; by('sharedSpaceDialog').close();
     status('本机留言 · 连接共享空间后，两部手机才能互相看到。');
     by('sharedStorageText').textContent = '共享相册尚未连接，暂不能上传。'; displayMode(); renderMessages(); renderMedia();
@@ -281,14 +324,14 @@
   }
   by('sharedMediaInput').addEventListener('change',async event => { const files = [...event.target.files]; event.target.value = ''; await uploadFiles(files); });
   by('showLocalPhotos').addEventListener('click',() => { by('gallery').hidden = !by('gallery').hidden; by('localPhotosLabel').hidden = by('gallery').hidden; });
-  by('migrateLocalPhotos').addEventListener('click',async () => {
+  async function migrateLocalPhotos(event) {
     if (!connected || migrationBusy || uploadController) return;
     migrationBusy = true; displayMode();
     const key = 'our-little-world-migrated-photos-' + connection.address;
     try {
       const imported = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
       const photos = state.photos.filter(photo => !imported.has(photo.id));
-      if (!photos.length) { toast('这些本机照片已经上传过了，原来的本机照片仍然保留。'); return; }
+      if (!photos.length) { if (event) toast('这些本机照片已经上传过了，原来的本机照片仍然保留。'); return; }
       const uploads = [];
       for (const photo of photos) {
         const blob = await (await fetch(photo.src)).blob();
@@ -299,7 +342,8 @@
       await uploadFiles(uploads,file => { imported.add(file.localPhotoId); localStorage.setItem(key,JSON.stringify([...imported])); });
     } catch (error) { toast(error.message); }
     finally { migrationBusy = false; displayMode(); }
-  });
+  }
+  by('migrateLocalPhotos').addEventListener('click',migrateLocalPhotos);
   by('migrateLocalMessages').addEventListener('click',async () => {
     if (!connected || migrationBusy) return;
     migrationBusy = true; displayMode();
@@ -315,14 +359,16 @@
     } catch (error) { toast(error.message); }
     finally { migrationBusy = false; displayMode(); }
   });
-  by('copyRoomInvite').addEventListener('click',async () => {
+  async function copyInvite() {
     if (!connected) return;
     const data = {address:connection.address,secret:connection.secret,provider:connection.provider,anonKey:connection.anonKey,email:connection.email,bucket:connection.bucket};
     const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    const link = location.origin + location.pathname + '#room=' + encoded;
+    const link = location.origin + location.pathname + '?v=20261112-photo-sync#room=' + encoded;
     try { await navigator.clipboard.writeText(link); toast('邀请链接已复制，只发给对方即可。'); }
     catch { by('roomInvite').value = link; by('roomInviteField').hidden = false; by('roomInvite').focus(); by('roomInvite').select(); }
-  });
+  }
+  by('copyRoomInvite').addEventListener('click',copyInvite);
+  by('copyAlbumInvite').addEventListener('click',copyInvite);
   window.addEventListener('our-world-state',() => { renderMessages(); displayMode(); saveProfile(); });
   window.addEventListener('beforeunload',event => { if (uploadController) { event.preventDefault(); event.returnValue = ''; } });
   try { const saved = JSON.parse(localStorage.getItem(connectionKey)); if (saved && /^https:\/\//.test(saved.address) && typeof saved.secret === 'string') connection = saved; } catch (error) {}
@@ -347,4 +393,9 @@
     by('sharedStorageText').textContent = '免费空间已开通，连接小屋后即可查看相册和可用容量。';
   }
   setInterval(() => { if (connection && !document.hidden && !uploadController) refresh().catch(() => {}); },30000);
+  const refreshOnReturn = () => { if (connection && !document.hidden && !uploadController) refresh(true).catch(() => { status('暂时无法刷新共享相册，已保留上次内容。'); }); };
+  document.addEventListener('visibilitychange',refreshOnReturn);
+  window.addEventListener('pageshow',refreshOnReturn);
+  window.addEventListener('focus',refreshOnReturn);
+  window.addEventListener('online',refreshOnReturn);
 })();
