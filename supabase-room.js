@@ -90,6 +90,9 @@
       const method = options.method || 'GET';
       const data = typeof options.body === 'string' ? JSON.parse(options.body) : {};
       if (path === '/account' && method === 'GET') {
+        options.onStage?.('credentials');
+        await login();
+        options.onStage?.('membership');
         member=await rpc('couple_current_member');
         if(!member?.ownerId||!['me','partner'].includes(member.identity))throw new Error('这个账号尚未加入小屋。');
         return member;

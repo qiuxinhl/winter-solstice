@@ -9,6 +9,7 @@
   let hasSynced = false;
   let recoveryTimer = null;
   let recoveryAttempts = 0;
+  let loginWaitTimer = null;
   let sharedMessages = [];
   let media = [];
   let refreshBusy = false;
@@ -43,6 +44,13 @@
     by('connectSharedSpace').disabled = busy;
     by('connectSharedSpace').textContent = busy ? '正在回家…' : '回到小屋 →';
     by('sharedSpaceForm').setAttribute('aria-busy',String(busy));
+  }
+  function accountStage(stage) {
+    clearTimeout(loginWaitTimer);
+    loginFeedback(stage==='credentials'?'正在验证账号和密码…':'账号已验证，正在确认小屋身份…',true);
+    loginWaitTimer=setTimeout(()=>{
+      if(loginBusy||restoring)loginFeedback(stage==='credentials'?'账号服务连接较慢，仍在等待响应，不用重复点击。':'账号已验证，小屋连接较慢，仍在等待响应。',true);
+    },5000);
   }
   function persistLogin() {
     try {
@@ -285,12 +293,12 @@
   async function restoreAccount() {
     if(!connection||restoring||loginBusy)return;
     restoring=true;const target=connection;loginFeedback('正在恢复登录，请稍等…',true);
-    try{const account=await api('/account',{},target);if(target===connection)acceptAccount(target,account);}
+    try{const account=await api('/account',{onStage:accountStage},target);if(target===connection)acceptAccount(target,account);}
     catch(error){
       if(target!==connection)return;
       if(error.authFailure)clearInvalidAccount(error,target);
       else {loginFeedback('暂时连不上小屋，已保留登录，会自动重试，不用重复输入密码。');scheduleRecovery();}
-    }finally{restoring=false;by('connectSharedSpace').disabled=false;}
+    }finally{clearTimeout(loginWaitTimer);restoring=false;by('connectSharedSpace').disabled=false;}
   }
   async function refresh(forceMedia = false) {
     if (!connection || refreshBusy) return;
@@ -356,12 +364,12 @@
     by('sharedConnectionHelp').textContent = '使用自己的账号和密码，留言会自动署上你的名字。';
   }
   async function verifyAccount(target) {
-    try{return await api('/account',{},target);}
+    try{return await api('/account',{onStage:accountStage},target);}
     catch(error){
       if(error.authFailure||!(error.transient||error instanceof TypeError||error.name==='TimeoutError'))throw error;
       loginFeedback('网络有些慢，正在继续确认登录，不用重复点击…',true);
       await new Promise(resolve=>setTimeout(resolve,600));
-      return api('/account',{},target);
+      return api('/account',{onStage:accountStage},target);
     }
   }
   by('sharedSpaceForm').addEventListener('submit',async event => {
@@ -386,7 +394,7 @@
         remember=by('rememberLogin').checked;persistLogin();by('loginPassword').value='';
         loginFeedback('账号已验证，连接小屋暂时有些慢，会自动重试，不用再次输入密码。');scheduleRecovery();
       }else loginFeedback(error instanceof TypeError?'暂时连不上小屋，请检查网络后再试。':error.message);
-    } finally { if(target)target.password='';loginBusy=false;displayMode(); }
+    } finally {clearTimeout(loginWaitTimer);if(target)target.password='';loginBusy=false;displayMode();}
   });
   by('toggleLoginSecret').addEventListener('click',() => {
     const show = by('loginPassword').type === 'password';
@@ -491,7 +499,7 @@
     finally { migrationBusy = false; displayMode(); }
   });
   async function copyInvite() {
-    const link=location.origin+location.pathname+'?v=20261112-login';
+    const link=location.origin+location.pathname+'?v=20261112-speed';
     try { await navigator.clipboard.writeText(link);toast('小屋网址已复制，对方使用自己的账号登录即可。'); }
     catch { by('roomInvite').value=link;by('roomInviteField').hidden=false;by('roomInvite').focus();by('roomInvite').select();toast('网址已显示，可以长按复制。'); }
   }
@@ -524,6 +532,7 @@
   connectionFields(); localNames(); displayMode(); renderMessages(); renderMedia();
   if (connection) restoreAccount();
   else if (cloud?.address) {
+    loginFeedback();
     status('免费小屋已开通 · 连接后查看共同留言，下面暂显示本机记录。');
   } else loginFeedback('登录信息暂未载入，请检查网络后刷新页面。');
   setInterval(() => { if (connection && !document.hidden && !uploadController) (connected?refresh():restoreAccount()).catch(() => {}); },30000);

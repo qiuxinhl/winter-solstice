@@ -6,10 +6,11 @@
   <meta name="theme-color" content="#fbf8f4">
   <meta name="format-detection" content="telephone=no">
   <title>QXNN</title>
-  <link rel="preload" href="vendor/qxnn-happy-ui-v2.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preconnect" href="https://sxjlwzxbzmekasifujlv.supabase.co" crossorigin>
+  <link rel="preload" href="vendor/qxnn-happy-ui-v3.woff2" as="font" type="font/woff2" crossorigin>
   <style>
-    @font-face { font-family:"QXNN Happy"; src:url("vendor/qxnn-happy-ui-v2.woff2") format("woff2"),url("vendor/qxnn-happy-ui-v2.ttf") format("truetype"); font-weight:400; font-style:normal; font-display:swap; }
-    @font-face { font-family:"ZCOOL KuaiLe"; src:url("vendor/zcool-kuaile.woff2") format("woff2"); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:"QXNN Happy"; src:url("vendor/qxnn-happy-ui-v3.woff2") format("woff2"),url("vendor/qxnn-happy-ui-v3.ttf") format("truetype"); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:"ZCOOL KuaiLe"; src:url("vendor/zcool-kuaile.woff2") format("woff2"); font-weight:400; font-style:normal; font-display:swap; unicode-range:U+3000-303F,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FF00-FFEF; }
     :root { --paper:#fbf8f4; --white:#fffdfb; --rose:#bf645f; --rose-dark:#964a46; --blush:#f3e4df; --ink:#403d38; --muted:#8d847c; --line:#e8ded5; --green:#707b62; --serif:"QXNN Happy","ZCOOL KuaiLe","Yuanti SC","Hiragino Maru Gothic ProN","Microsoft YaHei",sans-serif; --sans:ui-rounded,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
     * { box-sizing:border-box; }
     html { scroll-behavior:smooth; scroll-padding-top:104px; }
@@ -321,8 +322,8 @@
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
-  <link rel="stylesheet" href="shared-space.css?v=20261112-login">
-  <link rel="stylesheet" href="couple-world.css?v=20261112-login">
+  <link rel="stylesheet" href="shared-space.css?v=20261112-speed">
+  <link rel="stylesheet" href="couple-world.css?v=20261112-speed">
 </head>
 <body>
   <section class="login-page" id="loginPage" aria-labelledby="loginTitle">
@@ -341,7 +342,7 @@
         <div class="login-password"><input id="loginPassword" type="password" maxlength="128" placeholder="输入账号密码" autocomplete="current-password" required aria-describedby="sharedConnectionHelp loginFeedback"><button type="button" id="toggleLoginSecret" aria-label="显示密码" aria-pressed="false">显示</button></div>
         <div class="login-options"><label><input id="rememberLogin" type="checkbox" checked>记住这台设备</label><span>只属于两个人</span></div>
         <p id="loginFeedback" class="login-feedback" role="status" aria-live="polite"></p>
-        <button class="primary login-submit" type="submit" id="connectSharedSpace">回到小屋 <span aria-hidden="true">→</span></button>
+        <button class="primary login-submit" type="submit" id="connectSharedSpace" disabled>正在准备登录…</button>
         <p class="form-help" id="sharedConnectionHelp">使用自己的账号和密码，留言会自动署上你的名字。</p>
       </form>
       <p class="login-footer">一日三餐，四季有你。</p>
@@ -498,13 +499,13 @@
   <dialog id="photoDialog" aria-labelledby="photoTitle"><div class="dialog-head"><h2 id="photoTitle">收藏这一刻</h2><button class="icon-button" data-close aria-label="关闭照片"><svg class="icon"><use href="#close"/></svg></button></div><img class="viewer-image" id="viewerImage" alt="收藏的照片"><div class="dialog-body"><div class="viewer-nav"><button class="secondary" id="previousPhoto">上一张</button><span id="photoPosition"></span><button class="secondary" id="nextPhoto">下一张</button></div><form id="captionForm"><label class="form-field">给这一刻写一句话<input id="captionInput" maxlength="60" placeholder="比如：想把这一刻，一直记住。"></label><div class="dialog-actions"><button class="secondary danger" type="button" id="deletePhoto">移出相册</button><button class="primary" type="submit">保存这一刻</button></div></form></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">小屋设置</h2><button class="icon-button" data-close aria-label="关闭小屋设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help" id="roomLoginSummary">已登录两个人的小屋。</p><p class="form-help">退出后，这台设备需要重新登录。云端照片和留言、本机原有记录都会保留。请使用各自的账号登录，留言会自动署名。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>继续逛逛</button><button class="primary" type="button" id="disconnectSharedSpace">退出登录</button></div></div></dialog>
-  <script src="vendor/lunar.js"></script>
-  <script src="mood-notes.js?v=20261112-login"></script>
-  <script src="couple-time.js?v=20261112-login"></script>
-  <script src="date-ideas.js?v=20261112-login"></script>
-  <script src="couple-mail.js?v=20261112-login"></script>
-  <script src="anniversaries.js?v=20261112-login"></script>
-  <script src="cloud-config.js?v=20261112-login"></script>
+  <script src="solar-dates.js?v=20261112-speed"></script>
+  <script src="mood-notes.js?v=20261112-speed"></script>
+  <script src="couple-time.js?v=20261112-speed"></script>
+  <script src="date-ideas.js?v=20261112-speed"></script>
+  <script src="couple-mail.js?v=20261112-speed"></script>
+  <script src="anniversaries.js?v=20261112-speed"></script>
+  <script src="cloud-config.js?v=20261112-speed"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
@@ -811,8 +812,7 @@
 
     function solarCalendar(year) {
       if (solarCalendarCache.has(year)) return solarCalendarCache.get(year);
-      const table = Solar.fromYmd(year,6,1).getLunar().getJieQiTable();
-      const records = Object.entries(table).map(([name,date]) => ({ name:name === 'DONG_ZHI' ? '冬至' : name, date:date.toYmd(), year:date.getYear() })).filter(record => record.year === year && solarThemes.some(theme => theme.name === record.name)).sort((first,second) => first.date.localeCompare(second.date));
+      const records = window.QXNN_SOLAR_DATES.calendar(year);
       if (records.length !== 24) throw new Error('节气日历未能完整读取。');
       solarCalendarCache.set(year,records);
       return records;
@@ -898,7 +898,7 @@
         });
         byId('solarTermSelect').append(group);
       });
-      if (typeof Solar === 'undefined') {
+      if (!window.QXNN_SOLAR_DATES) {
         byId('solarTermSelect').disabled = true;
         byId('solarMode').textContent = '节气日历暂未载入';
         toast('请从完整的文件夹打开页面，以载入节气日历。');
@@ -1259,9 +1259,9 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
-  <script src="mail-codec.js?v=20261112-login"></script>
-  <script src="supabase-room.js?v=20261112-login"></script>
-  <script src="shared-space.js?v=20261112-login"></script>
-  <script src="world-effects.js?v=20261112-login"></script>
+  <script src="mail-codec.js?v=20261112-speed"></script>
+  <script src="supabase-room.js?v=20261112-speed"></script>
+  <script src="shared-space.js?v=20261112-speed"></script>
+  <script src="world-effects.js?v=20261112-speed"></script>
 </body>
 </html>
