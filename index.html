@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#fbf8f4">
   <meta name="format-detection" content="telephone=no">
-  <title>写给邬小姐 · 我们的小世界</title>
+  <title>QXNN</title>
   <style>
     :root { --paper:#fbf8f4; --white:#fffdfb; --rose:#bf645f; --rose-dark:#964a46; --blush:#f3e4df; --ink:#403d38; --muted:#8d847c; --line:#e8ded5; --green:#707b62; --serif:"Songti SC","STSong","SimSun",serif; --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
     * { box-sizing:border-box; }
@@ -340,7 +340,7 @@
   </svg>
   <header class="topbar">
     <div class="wrap header-inner">
-      <a class="brand" href="#home"><svg class="icon brand-mark"><use href="#heart"/></svg>我们的小世界</a>
+      <a class="brand" href="#home"><svg class="icon brand-mark"><use href="#heart"/></svg>QXNN</a>
       <nav class="nav" aria-label="主导航"><a class="active" href="#home">写给你</a><a href="#time">我们的时光</a><a href="#photos">心动相册</a><a href="#moods">悄悄话</a><a href="#wishes">一起去做</a><a href="#messages">留言</a></nav>
       <button class="header-action" data-open="settingsDialog"><svg class="icon"><use href="#edit"/></svg>定制我们的小站</button>
     </div>
@@ -937,7 +937,7 @@
       byId('myName').textContent = state.me;
       byId('myAvatar').textContent = Array.from(state.me)[0];
       byId('partnerAvatar').textContent = Array.from(state.partner)[0];
-      document.title = '写给' + state.partner + ' · 我们的小世界';
+      document.title = 'QXNN';
       updateClock();
       renderGallery();
       renderWishes();
@@ -1111,7 +1111,7 @@
       const address = URL.createObjectURL(blob);
       const download = document.createElement('a');
       download.href = address;
-      download.download = '我们的小世界-' + todayString() + '.json';
+      download.download = 'QXNN-' + todayString() + '.json';
       download.click();
       setTimeout(() => URL.revokeObjectURL(address),1000);
       toast('备份已准备好，请留意浏览器的下载。');
