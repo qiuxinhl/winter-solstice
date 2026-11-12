@@ -321,8 +321,8 @@
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
-  <link rel="stylesheet" href="shared-space.css?v=20261112-perspective">
-  <link rel="stylesheet" href="couple-world.css?v=20261112-perspective">
+  <link rel="stylesheet" href="shared-space.css?v=20261112-login">
+  <link rel="stylesheet" href="couple-world.css?v=20261112-login">
 </head>
 <body>
   <section class="login-page" id="loginPage" aria-labelledby="loginTitle">
@@ -499,12 +499,12 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">小屋设置</h2><button class="icon-button" data-close aria-label="关闭小屋设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help" id="roomLoginSummary">已登录两个人的小屋。</p><p class="form-help">退出后，这台设备需要重新登录。云端照片和留言、本机原有记录都会保留。请使用各自的账号登录，留言会自动署名。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>继续逛逛</button><button class="primary" type="button" id="disconnectSharedSpace">退出登录</button></div></div></dialog>
   <script src="vendor/lunar.js"></script>
-  <script src="mood-notes.js?v=20261112-perspective"></script>
-  <script src="couple-time.js?v=20261112-perspective"></script>
-  <script src="date-ideas.js?v=20261112-perspective"></script>
-  <script src="couple-mail.js?v=20261112-perspective"></script>
-  <script src="anniversaries.js?v=20261112-perspective"></script>
-  <script src="cloud-config.js?v=20261112-perspective"></script>
+  <script src="mood-notes.js?v=20261112-login"></script>
+  <script src="couple-time.js?v=20261112-login"></script>
+  <script src="date-ideas.js?v=20261112-login"></script>
+  <script src="couple-mail.js?v=20261112-login"></script>
+  <script src="anniversaries.js?v=20261112-login"></script>
+  <script src="cloud-config.js?v=20261112-login"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
@@ -1259,9 +1259,9 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
-  <script src="mail-codec.js?v=20261112-perspective"></script>
-  <script src="supabase-room.js?v=20261112-perspective"></script>
-  <script src="shared-space.js?v=20261112-perspective"></script>
-  <script src="world-effects.js?v=20261112-perspective"></script>
+  <script src="mail-codec.js?v=20261112-login"></script>
+  <script src="supabase-room.js?v=20261112-login"></script>
+  <script src="shared-space.js?v=20261112-login"></script>
+  <script src="world-effects.js?v=20261112-login"></script>
 </body>
 </html>

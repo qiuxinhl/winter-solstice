@@ -23,15 +23,17 @@
       if (response.status === 204) return null;
       return response.json().catch(() => null);
     }
-    function problem(response, data) {
-      if (response.status === 401 || response.status === 403 || (response.status === 400 && /invalid_credentials|invalid login credentials|refresh.token|user_banned/i.test((data?.code || '') + ' ' + (data?.msg || data?.message || data?.error_description || '')))) {
+    function problem(response, data, authentication = false) {
+      if ((authentication && (response.status === 401 || response.status === 403)) || (response.status === 400 && /invalid_credentials|invalid login credentials|refresh.token|user_banned/i.test((data?.code || '') + ' ' + (data?.msg || data?.message || data?.error_description || '')))) {
         const error=new Error(response.status===403?'这个账号暂时无法进入小屋，请核对账号。':'账号或密码不正确，或登录已过期，请重新登录。');error.authFailure=true;return error;
       }
       const detail = data?.message || data?.error_description || data?.error || '';
+      if (response.status === 401) { const error=new Error('登录已过期，请重新登录。');error.authFailure=true;return error; }
+      if (response.status === 403) return new Error('这部分内容暂时无法读取，请稍后刷新重试。');
       if (/quota|capacity|space|容量|空间/.test(detail)) return new Error('免费空间剩余容量不足，请先整理相册。');
       if (/50.?MB|size|大小|文件过大/i.test(detail) || response.status === 413) return new Error('免费版单个文件最多50MB，请压缩或剪短视频后再试。');
       if (/rate|too many/i.test(detail) || response.status === 429) return new Error('操作有些频繁，请稍等一会儿再试。');
-      return new Error('云端暂时没有完成这个操作，请稍后重试。');
+      const error=new Error('云端暂时没有完成这个操作，请稍后重试。');error.transient=response.status>=500;return error;
     }
     async function login() {
       if (session && session.expires_at * 1000 > Date.now() + 60000) return session;
@@ -44,11 +46,11 @@
           signal:AbortSignal.timeout(30000),credentials:'omit',referrerPolicy:'no-referrer'
         });
         const data = await responseData(response);
-        if (!response.ok || !data?.access_token || !data.user?.id) { session = null; throw problem(response,data); }
+        if (!response.ok || !data?.access_token || !data.user?.id) { const error=problem(response,data,true);if(error.authFailure){session=null;target.session=null;}throw error; }
         session = {...data,expires_at:data.expires_at || Math.floor(Date.now()/1000) + data.expires_in};
         target.password = '';
         target.session={access_token:session.access_token,refresh_token:session.refresh_token,expires_at:session.expires_at,user:{id:session.user.id}};
-        window.dispatchEvent(new Event('our-world-session'));
+        window.dispatchEvent(new CustomEvent('our-world-session',{detail:target}));
         return session;
       })();
       try { return await signingIn; } finally { signingIn = null; }
@@ -60,7 +62,12 @@
         ...fetchOptions,headers:{apikey:target.anonKey,Authorization:'Bearer ' + current.access_token,...(options.body ? {'Content-Type':'application/json'} : {}),...options.headers},
         signal:options.signal || AbortSignal.timeout(30000),credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store'
       });
-      if (response.status === 401 && retry) { session.expires_at = 0; await login(); return request(path,options,false); }
+      if (response.status === 401 && retry) {
+        // A late 401 from another concurrent request must not expire a token
+        // that has already been renewed by the first request.
+        if(session?.access_token===current.access_token){session.expires_at=0;await login();}
+        return request(path,options,false);
+      }
       const data = binary && response.ok ? await response.blob() : await responseData(response);
       if (!response.ok) throw problem(response,data);
       return data;
@@ -82,6 +89,11 @@
     async function api(path,options={}) {
       const method = options.method || 'GET';
       const data = typeof options.body === 'string' ? JSON.parse(options.body) : {};
+      if (path === '/account' && method === 'GET') {
+        member=await rpc('couple_current_member');
+        if(!member?.ownerId||!['me','partner'].includes(member.identity))throw new Error('这个账号尚未加入小屋。');
+        return member;
+      }
       if (path === '/room' && method === 'GET') {
         member=await rpc('couple_current_member');
         if(!member?.ownerId||!['me','partner'].includes(member.identity))throw new Error('这个账号尚未加入小屋。');

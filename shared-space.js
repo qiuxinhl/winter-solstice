@@ -6,6 +6,9 @@
   let remember = true;
   let connection = null;
   let connected = false;
+  let hasSynced = false;
+  let recoveryTimer = null;
+  let recoveryAttempts = 0;
   let sharedMessages = [];
   let media = [];
   let refreshBusy = false;
@@ -80,6 +83,9 @@
     by('disconnectSharedSpace').disabled = Boolean(uploadController);
     by('connectSharedSpace').disabled = Boolean(uploadController) || loginBusy;
     loginMode();
+    by('settingsForm').querySelector('[type="submit"]').disabled=connected&&!hasSynced;
+    by('anniversaryForm').querySelector('[type="submit"]').disabled=connected&&!hasSynced;
+    document.querySelectorAll('[data-open="anniversaryDialog"]').forEach(button=>button.disabled=connected&&!hasSynced);
     window.dispatchEvent(new CustomEvent('our-world-connection',{detail:{connected,identity,revision:connectionRevision}}));
     by('copyAlbumInvite').hidden = !connected;
     by('albumConnection').textContent = connected ? '小屋设置' : '连接小屋';
@@ -92,7 +98,7 @@
     if (connected) {
       by('photos').querySelector('.section-desc').textContent = '这里上传的照片和视频，会同步到两个人的小屋。';
       by('uploadPhoto').textContent = '上传照片或视频';
-      by('photoSyncNotice').textContent = '共享相册 · 云端共 ' + media.length + ' 个文件 · ' + storageSummary;
+      by('photoSyncNotice').textContent = hasSynced ? '共享相册 · 云端共 ' + media.length + ' 个文件 · ' + storageSummary : '已登录 · 正在读取共享相册，网络恢复后会自动重试，也可点击“刷新共享相册”。';
       by('gallery').hidden = true;
       by('localPhotosLabel').hidden = true;
       by('showLocalPhotos').hidden = !state.photos.length;
@@ -105,7 +111,7 @@
   }
   const profile = () => ({me:state.me,partner:state.partner,startDate:state.startDate,anniversaries:state.anniversaries||[]});
   async function saveProfile() {
-    if (!connected || connection?.provider !== 'supabase' || applyingProfile) return;
+    if (!connected || !hasSynced || connection?.provider !== 'supabase' || applyingProfile) return;
     const next = profile();
     if (JSON.stringify(next) === JSON.stringify(remoteProfile)) return;
     pendingProfile = next;
@@ -138,7 +144,7 @@
     const messages = connected ? sharedMessages : (state.messages || []);
     if (!messages.length) {
       const empty = document.createElement('li'); empty.className = 'shared-empty';
-      empty.textContent = connected ? '还没有留言。给对方写下第一句吧。' : '还没有本机留言。先写下想说的话，也可以稍后连接共享空间。';
+      empty.textContent = connected ? (hasSynced ? '还没有留言。给对方写下第一句吧。' : '留言正在加载，网络恢复后会自动重试。') : '还没有本机留言。先写下想说的话，也可以稍后连接共享空间。';
       list.append(empty);
     }
     [...messages].sort((a,b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).forEach(message => {
@@ -176,6 +182,7 @@
     if (!media.length) {
       const empty = document.createElement('p'); empty.className = 'shared-empty';
       empty.textContent = connected ? (state.photos.length ? '云端暂无照片，当前设备还有 ' + state.photos.length + ' 张本机照片。正在尝试同步，也可以点击上方“将本机照片上传到共享相册”。' : '云端暂无照片。若电脑能看到照片，请在电脑端连接同一个小屋并上传本机照片，再点“刷新共享相册”。') : '共享相册尚未连接，暂不能上传照片视频。容量以实际开通的空间为准。';
+      if(connected&&!hasSynced)empty.textContent='相册正在加载，网络恢复后会自动重试，不需要重新登录。';
       grid.append(empty); return;
     }
     const revision = connectionRevision;
@@ -253,6 +260,38 @@
       } else loadPreview();
     });
   }
+  function scheduleRecovery() {
+    if(recoveryTimer||!connection||recoveryAttempts>=3)return;
+    const target=connection,delay=[1500,4000,10000][recoveryAttempts++];
+    recoveryTimer=setTimeout(()=>{recoveryTimer=null;if(connection!==target)return;(connected?refresh():restoreAccount()).catch(()=>{});},delay);
+  }
+  function clearInvalidAccount(error,target) {
+    if(target!==connection)return;
+    for(const store of [localStorage,sessionStorage]){try{store.removeItem(connectionKey);}catch{}}
+    clearTimeout(recoveryTimer);recoveryTimer=null;
+    connection=null;connected=false;hasSynced=false;identity=null;sharedMessages=[];media=[];connectionRevision++;
+    pendingProfile=null;remoteProfile=null;
+    renderMessages();renderMedia();loginFeedback(error.message);displayMode();
+  }
+  function acceptAccount(target,account) {
+    connection=target;identity=account.identity;connected=true;hasSynced=false;
+    localOnly=false;localPhotosChecked=false;remoteProfile=null;pendingProfile=null;
+    persistLogin();by('loginPassword').value='';loginFeedback();
+    status('已连接两个人的小屋 · 正在加载照片和留言。');
+    displayMode();renderMessages();renderMedia();
+    refresh().catch(()=>{});
+  }
+  let restoring=false;
+  async function restoreAccount() {
+    if(!connection||restoring||loginBusy)return;
+    restoring=true;const target=connection;loginFeedback('正在恢复登录，请稍等…',true);
+    try{const account=await api('/account',{},target);if(target===connection)acceptAccount(target,account);}
+    catch(error){
+      if(target!==connection)return;
+      if(error.authFailure)clearInvalidAccount(error,target);
+      else {loginFeedback('暂时连不上小屋，已保留登录，会自动重试，不用重复输入密码。');scheduleRecovery();}
+    }finally{restoring=false;by('connectSharedSpace').disabled=false;}
+  }
   async function refresh(forceMedia = false) {
     if (!connection || refreshBusy) return;
     refreshBusy = true;
@@ -260,10 +299,11 @@
     try {
       const [room,notes,album] = await Promise.all([api('/room',{},target),api('/messages',{},target),api('/media',{},target)]);
       if (target !== connection) return;
-      const mediaChanged = !connected || JSON.stringify(media) !== JSON.stringify(album.media);
+      const mediaChanged = !hasSynced || JSON.stringify(media) !== JSON.stringify(album.media);
       if (!['me','partner'].includes(room.identity)) throw new Error('这个账号尚未加入小屋。');
       identity = room.identity;
-      connected = true; sharedMessages = notes.messages; media = album.media;
+      connected = true;hasSynced=true; sharedMessages = notes.messages; media = album.media;
+      clearTimeout(recoveryTimer);recoveryTimer=null;recoveryAttempts=0;
       persistLogin();
       await receiveProfile(room.profile);
       if (pendingProfile && !profileSaving) await saveProfile();
@@ -277,11 +317,8 @@
         setTimeout(() => { if (connection === target && connected && !uploadController) migrateLocalPhotos(); },0);
       }
     } catch (error) {
-      if (error.authFailure && target === connection) {
-        for (const store of [localStorage,sessionStorage]) { try { store.removeItem(connectionKey); } catch {} }
-        connection=null;connected=false;identity=null;sharedMessages=[];media=[];connectionRevision++;
-        renderMessages();renderMedia();loginFeedback(error.message);
-      }
+      if(error.authFailure)clearInvalidAccount(error,target);
+      else if(target===connection){status('已登录 · 内容暂时未能刷新，正在自动重试，不需要重新登录。');scheduleRecovery();}
       throw error;
     } finally {
       refreshBusy = false; displayMode();
@@ -318,6 +355,15 @@
   function connectionFields() {
     by('sharedConnectionHelp').textContent = '使用自己的账号和密码，留言会自动署上你的名字。';
   }
+  async function verifyAccount(target) {
+    try{return await api('/account',{},target);}
+    catch(error){
+      if(error.authFailure||!(error.transient||error instanceof TypeError||error.name==='TimeoutError'))throw error;
+      loginFeedback('网络有些慢，正在继续确认登录，不用重复点击…',true);
+      await new Promise(resolve=>setTimeout(resolve,600));
+      return api('/account',{},target);
+    }
+  }
   by('sharedSpaceForm').addEventListener('submit',async event => {
     event.preventDefault();
     if (uploadController || loginBusy) return;
@@ -328,15 +374,18 @@
       const username=by('loginUsername').value.normalize('NFKC').trim().toLowerCase();
       const email=await window.QXNN_ACCOUNT_EMAIL(username);
       target={...cloud,username,email,password:by('loginPassword').value};
-      const room=await api('/room',{},target);
+      const room=await verifyAccount(target);
       if(!['me','partner'].includes(room.identity))throw new Error('这个账号尚未加入小屋。');
-      connection=target; connectionRevision++; identity=room.identity;
       remember=by('rememberLogin').checked;
-      localOnly=false; localPhotosChecked=false;remoteProfile=null;pendingProfile=null;
-      connected=false;sharedMessages=[];media=[]; await refresh();
+      connectionRevision++;sharedMessages=[];media=[];recoveryAttempts=0;
+      acceptAccount(target,room);
       by('loginPassword').value='';loginFeedback();toast('欢迎回家，'+(window.QXNN_PEOPLE.name(identity || 'me'))+'。');
     } catch(error) {
-      loginFeedback(error instanceof TypeError?'暂时连不上小屋，请检查网络后再试。':error.message);
+      if(target?.session?.refresh_token&&!error.authFailure){
+        connection=target;connectionRevision++;connected=false;hasSynced=false;identity=null;
+        remember=by('rememberLogin').checked;persistLogin();by('loginPassword').value='';
+        loginFeedback('账号已验证，连接小屋暂时有些慢，会自动重试，不用再次输入密码。');scheduleRecovery();
+      }else loginFeedback(error instanceof TypeError?'暂时连不上小屋，请检查网络后再试。':error.message);
     } finally { if(target)target.password='';loginBusy=false;displayMode(); }
   });
   by('toggleLoginSecret').addEventListener('click',() => {
@@ -350,7 +399,8 @@
     if (uploadController || loginBusy) return;
     for (const store of [localStorage,sessionStorage]) { try { store.removeItem(connectionKey); } catch {} }
     if(connection)window.getSupabaseRoom(connection).logout();
-    connection = null; identity = null; connected = false; sharedMessages = []; media = []; connectionRevision++;
+    clearTimeout(recoveryTimer);recoveryTimer=null;recoveryAttempts=0;
+    connection = null; identity = null; connected = false;hasSynced=false; sharedMessages = []; media = []; connectionRevision++;
     remoteProfile = null; pendingProfile = null;
     localOnly = true; localPhotosChecked = false;
     by('loginPassword').value = ''; by('sharedSpaceDialog').close();
@@ -441,7 +491,7 @@
     finally { migrationBusy = false; displayMode(); }
   });
   async function copyInvite() {
-    const link=location.origin+location.pathname+'?v=20261112-perspective';
+    const link=location.origin+location.pathname+'?v=20261112-login';
     try { await navigator.clipboard.writeText(link);toast('小屋网址已复制，对方使用自己的账号登录即可。'); }
     catch { by('roomInvite').value=link;by('roomInviteField').hidden=false;by('roomInvite').focus();by('roomInvite').select();toast('网址已显示，可以长按复制。'); }
   }
@@ -463,7 +513,7 @@
     history.replaceState(null,'',location.pathname+location.search);
     loginFeedback('现在请使用自己的账号和密码登录，旧连接口令已停用。');
   }
-  window.addEventListener('our-world-session',()=>{if(connection&&connected)persistLogin();});
+  window.addEventListener('our-world-session',event=>{if(connection&&event.detail===connection)persistLogin();});
   window.ourSharedSpace = {
     isConnected:() => connected,
     identity:() => identity,
@@ -472,12 +522,12 @@
     chooseMedia:() => { if (uploadController || migrationBusy) return; if (connected) by('sharedMediaInput').click(); else { connectionFields(); openDialog('sharedSpaceDialog'); } }
   };
   connectionFields(); localNames(); displayMode(); renderMessages(); renderMedia();
-  if (connection) { loginFeedback('正在连接小屋…',true); refresh().then(() => { if (identity) loginFeedback(); }).catch(error => { loginFeedback(error instanceof TypeError ? '暂时连不上小屋，请检查网络，或重新登录。' : error.message); }).finally(() => { by('connectSharedSpace').disabled = false; }); }
+  if (connection) restoreAccount();
   else if (cloud?.address) {
     status('免费小屋已开通 · 连接后查看共同留言，下面暂显示本机记录。');
   } else loginFeedback('登录信息暂未载入，请检查网络后刷新页面。');
-  setInterval(() => { if (connection && !document.hidden && !uploadController) refresh().catch(() => {}); },30000);
-  const refreshOnReturn = () => { if (connection && !document.hidden && !uploadController) refresh(true).catch(() => { status('暂时无法刷新共享相册，已保留上次内容。'); }); };
+  setInterval(() => { if (connection && !document.hidden && !uploadController) (connected?refresh():restoreAccount()).catch(() => {}); },30000);
+  const refreshOnReturn = () => { if (connection && !document.hidden && !uploadController) (connected?refresh(true):restoreAccount()).catch(() => { status('暂时无法刷新共享相册，已保留上次内容。'); }); };
   document.addEventListener('visibilitychange',refreshOnReturn);
   window.addEventListener('pageshow',refreshOnReturn);
   window.addEventListener('focus',refreshOnReturn);
