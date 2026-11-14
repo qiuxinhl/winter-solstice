@@ -322,8 +322,8 @@
     .motion-paused { scroll-behavior:auto; }.motion-paused .floating-heart { display:none; }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }*,*:before,*:after { animation:none!important; transition-duration:.01ms!important; }.petal-field,.floating-heart { display:none; } }
   </style>
-  <link rel="stylesheet" href="shared-space.css?v=20261112-member-fast">
-  <link rel="stylesheet" href="couple-world.css?v=20261112-member-fast">
+  <link rel="stylesheet" href="shared-space.css?v=20261114-shared-season">
+  <link rel="stylesheet" href="couple-world.css?v=20261114-shared-season">
 </head>
 <body>
   <section class="login-page" id="loginPage" aria-labelledby="loginTitle">
@@ -444,7 +444,7 @@
     </section>
     <section class="section" id="seasons">
       <div class="section-header"><div><span class="section-number">02 / 陪你走过二十四节气</span><h2>随节气，与你慢慢过</h2><p class="section-desc">按北京时间自动换色，二十四节气各有专属配色。</p></div></div>
-      <div class="season-card" id="seasonCard"><div><div class="solar-controls"><label class="solar-picker" for="solarTermSelect">预览其他节气<select id="solarTermSelect"><option value="">跟随当前节气</option></select></label><button class="text-link solar-follow" id="followSolarTerm" disabled>已跟随当前节气</button></div><div class="season-copy" id="seasonContent" aria-live="polite"><span class="solar-mode" id="solarMode">随节气自动换装</span><span class="solar-color" id="solarColorName">每个节气，一种专属颜色</span><h3 id="seasonTitle">每个时节，都想与你分享。</h3><p id="seasonMessage">让背景、色彩和小小的心意，一起随时节慢慢变化。</p><span class="season-tag" id="seasonTag">春夏秋冬，一直是你</span><div class="solar-range"><time id="solarRange"></time><span id="nextSolarTerm"></span></div></div></div><svg class="season-art" viewBox="0 0 290 210" fill="none" aria-hidden="true"><circle class="season-glow" cx="146" cy="99" r="83"/><circle cx="146" cy="99" r="94" stroke="currentColor" stroke-opacity=".2" stroke-dasharray="2 7"/><path class="season-hill" d="M31 158q43-45 94-11t130-4v28H31Z"/><path d="M31 171h224M66 164c22-44 37-62 56-69m96 68c-14-21-26-30-47-31" stroke="currentColor" stroke-opacity=".4"/><path d="M99 118c-26-1-31-16-29-30 22 5 29 15 29 30Zm92 22c7-22 19-27 32-25-5 18-16 24-32 25Z" fill="currentColor" fill-opacity=".2"/><svg x="116" y="48" width="60" height="60" viewBox="0 0 24 24" class="icon" style="width:60px;height:60px;stroke-width:1"><use id="seasonIcon" href="#leaf"/></svg><path d="M49 60h8m-4-4v8m184 42h7m-3.5-3.5v7M204 38h5" stroke="currentColor" stroke-opacity=".5"/></svg></div>
+      <div class="season-card" id="seasonCard"><div><div class="solar-controls"><label class="solar-picker" for="solarTermSelect">选择小屋节气<select id="solarTermSelect"><option value="">跟随当前节气</option></select></label><button class="text-link solar-follow" id="followSolarTerm" disabled>已跟随当前节气</button></div><p class="form-help" id="solarSyncStatus" role="status" aria-live="polite">登录后，两个人共享同一套节气装扮。</p><div class="season-copy" id="seasonContent" aria-live="polite"><span class="solar-mode" id="solarMode">随节气自动换装</span><span class="solar-color" id="solarColorName">每个节气，一种专属颜色</span><h3 id="seasonTitle">每个时节，都想与你分享。</h3><p id="seasonMessage">让背景、色彩和小小的心意，一起随时节慢慢变化。</p><span class="season-tag" id="seasonTag">春夏秋冬，一直是你</span><div class="solar-range"><time id="solarRange"></time><span id="nextSolarTerm"></span></div></div></div><svg class="season-art" viewBox="0 0 290 210" fill="none" aria-hidden="true"><circle class="season-glow" cx="146" cy="99" r="83"/><circle cx="146" cy="99" r="94" stroke="currentColor" stroke-opacity=".2" stroke-dasharray="2 7"/><path class="season-hill" d="M31 158q43-45 94-11t130-4v28H31Z"/><path d="M31 171h224M66 164c22-44 37-62 56-69m96 68c-14-21-26-30-47-31" stroke="currentColor" stroke-opacity=".4"/><path d="M99 118c-26-1-31-16-29-30 22 5 29 15 29 30Zm92 22c7-22 19-27 32-25-5 18-16 24-32 25Z" fill="currentColor" fill-opacity=".2"/><svg x="116" y="48" width="60" height="60" viewBox="0 0 24 24" class="icon" style="width:60px;height:60px;stroke-width:1"><use id="seasonIcon" href="#leaf"/></svg><path d="M49 60h8m-4-4v8m184 42h7m-3.5-3.5v7M204 38h5" stroke="currentColor" stroke-opacity=".5"/></svg></div>
     </section>
     <section class="section" id="photos">
       <div class="section-header"><div><span class="section-number">03 / 值得收藏的瞬间</span><h2>每一张，都很喜欢</h2><p class="section-desc">照片会替我们，记住那些舍不得忘的日常。</p></div><button class="text-link" id="uploadPhoto"><svg class="icon"><use href="#plus"/></svg>放入照片</button></div>
@@ -499,13 +499,13 @@
   <dialog id="photoDialog" aria-labelledby="photoTitle"><div class="dialog-head"><h2 id="photoTitle">收藏这一刻</h2><button class="icon-button" data-close aria-label="关闭照片"><svg class="icon"><use href="#close"/></svg></button></div><img class="viewer-image" id="viewerImage" alt="收藏的照片"><div class="dialog-body"><div class="viewer-nav"><button class="secondary" id="previousPhoto">上一张</button><span id="photoPosition"></span><button class="secondary" id="nextPhoto">下一张</button></div><form id="captionForm"><label class="form-field">给这一刻写一句话<input id="captionInput" maxlength="60" placeholder="比如：想把这一刻，一直记住。"></label><div class="dialog-actions"><button class="secondary danger" type="button" id="deletePhoto">移出相册</button><button class="primary" type="submit">保存这一刻</button></div></form></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <dialog id="sharedSpaceDialog" aria-labelledby="sharedSpaceTitle"><div class="dialog-head"><h2 id="sharedSpaceTitle">小屋设置</h2><button class="icon-button" data-close aria-label="关闭小屋设置"><svg class="icon"><use href="#close"/></svg></button></div><div class="dialog-body"><p class="form-help" id="roomLoginSummary">已登录两个人的小屋。</p><p class="form-help">退出后，这台设备需要重新登录。云端照片和留言、本机原有记录都会保留。请使用各自的账号登录，留言会自动署名。</p><div class="dialog-actions"><button class="secondary" type="button" data-close>继续逛逛</button><button class="primary" type="button" id="disconnectSharedSpace">退出登录</button></div></div></dialog>
-  <script src="solar-dates.js?v=20261112-member-fast"></script>
-  <script src="mood-notes.js?v=20261112-member-fast"></script>
-  <script src="couple-time.js?v=20261112-member-fast"></script>
-  <script src="date-ideas.js?v=20261112-member-fast"></script>
-  <script src="couple-mail.js?v=20261112-member-fast"></script>
-  <script src="anniversaries.js?v=20261112-member-fast"></script>
-  <script src="cloud-config.js?v=20261112-member-fast"></script>
+  <script src="solar-dates.js?v=20261114-shared-season"></script>
+  <script src="mood-notes.js?v=20261114-shared-season"></script>
+  <script src="couple-time.js?v=20261114-shared-season"></script>
+  <script src="date-ideas.js?v=20261114-shared-season"></script>
+  <script src="couple-mail.js?v=20261114-shared-season"></script>
+  <script src="anniversaries.js?v=20261114-shared-season"></script>
+  <script src="cloud-config.js?v=20261114-shared-season"></script>
   <script>
     'use strict';
     const storageKey = 'our-little-world-v1';
@@ -850,7 +850,7 @@
       root.dataset.solarMode = previewSolarTerm ? 'preview' : 'auto';
       document.querySelector('meta[name="theme-color"]').setAttribute('content',theme.paper);
       byId('solarEyebrow').textContent = theme.name + ' · 一份只写给你的偏爱';
-      byId('heroTermName').textContent = (previewSolarTerm ? '预览 · ' : '') + theme.name;
+      byId('heroTermName').textContent = (previewSolarTerm ? '我们的节气 · ' : '') + theme.name;
       byId('heroThemeLabel').textContent = theme.label;
       byId('solarColorName').textContent = '本节气配色 · ' + theme.colorName;
       byId('heroTermIcon').setAttribute('href','#' + theme.icon);
@@ -870,7 +870,7 @@
       byId('seasonTag').textContent = theme.tag;
       byId('seasonIcon').setAttribute('href','#' + theme.icon);
       byId('seasonCard').dataset.solarTerm = theme.name;
-      byId('solarMode').textContent = previewSolarTerm ? '正在预览 · ' + theme.name : '当前节气 · ' + theme.name;
+      byId('solarMode').textContent = previewSolarTerm ? '小屋节气 · ' + theme.name : '当前节气 · ' + theme.name;
       byId('solarTermSelect').value = previewSolarTerm;
       byId('followSolarTerm').disabled = !previewSolarTerm;
       byId('followSolarTerm').textContent = previewSolarTerm ? '返回当前节气 · ' + context.current.name : '已跟随当前节气';
@@ -885,6 +885,19 @@
       }
     }
 
+    window.QXNN_SOLAR_THEME = {
+      get: () => previewSolarTerm,
+      valid: term => typeof term === 'string' && (term === '' || solarThemes.some(theme => theme.name === term)),
+      set: (term,animated = true) => {
+        if (!window.QXNN_SOLAR_THEME.valid(term)) return false;
+        if (term !== previewSolarTerm) { previewSolarTerm = term; updateSolarTheme(animated); }
+        return true;
+      }
+    };
+    function chooseSolarTerm(term) {
+      if (!window.QXNN_SOLAR_THEME.set(term)) return;
+      window.dispatchEvent(new CustomEvent('our-world-solar-choice',{detail:{term}}));
+    }
     function setupSolarThemes() {
       const labels = { spring:'春 · 草木生长', summer:'夏 · 日长风暖', autumn:'秋 · 月清风轻', winter:'冬 · 灯暖相伴' };
       Object.entries(labels).forEach(([season,label]) => {
@@ -905,12 +918,10 @@
         return;
       }
       byId('solarTermSelect').addEventListener('change', event => {
-        previewSolarTerm = event.target.value;
-        updateSolarTheme(true);
+        chooseSolarTerm(event.target.value);
       });
       byId('followSolarTerm').addEventListener('click', () => {
-        previewSolarTerm = '';
-        updateSolarTheme(true);
+        chooseSolarTerm('');
       });
       document.addEventListener('visibilitychange', () => { if (!document.hidden) updateSolarTheme(); });
       setInterval(() => { if (!document.hidden && beijingDate() !== lastSolarDate) updateSolarTheme(); },30000);
@@ -1259,9 +1270,10 @@
     setupMotion();
     setInterval(updateClock,1000);
   </script>
-  <script src="mail-codec.js?v=20261112-member-fast"></script>
-  <script src="supabase-room.js?v=20261112-member-fast"></script>
-  <script src="shared-space.js?v=20261112-member-fast"></script>
-  <script src="world-effects.js?v=20261112-member-fast"></script>
+  <script src="mail-codec.js?v=20261114-shared-season"></script>
+  <script src="supabase-room.js?v=20261114-shared-season"></script>
+  <script src="shared-space.js?v=20261114-shared-season"></script>
+  <script src="shared-theme.js?v=20261114-shared-season"></script>
+  <script src="world-effects.js?v=20261114-shared-season"></script>
 </body>
 </html>

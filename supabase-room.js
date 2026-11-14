@@ -78,6 +78,7 @@
     }
     const rpc = (name,body={},signal) => request('/rest/v1/rpc/' + name,{method:'POST',body:JSON.stringify(body),signal});
     const first = data => Array.isArray(data) ? data[0] : data;
+    const solarTerms = new Set('立春 雨水 惊蛰 春分 清明 谷雨 立夏 小满 芒种 夏至 小暑 大暑 立秋 处暑 白露 秋分 寒露 霜降 立冬 小雪 大雪 冬至 小寒 大寒'.split(' '));
     async function currentMember(fresh=false) {
       const current=await login();
       if(!fresh&&member&&memberUser===current.user.id&&Date.now()-memberCheckedAt<60000)return member;
@@ -142,6 +143,18 @@
         const [usage,rows] = await Promise.all([rpc('couple_storage_usage'),request('/rest/v1/couple_settings?select=me,partner,start_date,anniversaries&limit=1')]);
         return {...first(usage),...member,profile:rows?.length ? {me:rows[0].me,partner:rows[0].partner,startDate:rows[0].start_date,anniversaries:rows[0].anniversaries||[]} : null};
       }
+      if (path === '/room/theme' && method === 'GET') {
+        const rows=await request('/rest/v1/couple_theme?select=solar_term&limit=1',{signal:AbortSignal.timeout(10000)});
+        const term=rows?.[0]?.solar_term ?? '';
+        if(term!==''&&!solarTerms.has(term))throw new Error('节气设置暂时无法读取，请稍后重试。');
+        return {term};
+      }
+      if (path === '/room/theme' && method === 'PUT') {
+        if(typeof data.term!=='string'||(data.term!==''&&!solarTerms.has(data.term)))throw new Error('请选择有效的节气。');
+        const account=await currentMember();
+        await request('/rest/v1/couple_theme?on_conflict=owner_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates'},body:JSON.stringify({owner_id:account.ownerId,solar_term:data.term}),signal:AbortSignal.timeout(10000)});
+        return {term:data.term};
+      }
       if (path === '/room/profile' && method === 'PUT') {
         if(!member)member=await rpc('couple_current_member');
         await request('/rest/v1/couple_settings?on_conflict=owner_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates'},body:JSON.stringify({owner_id:member.ownerId,me:data.me,partner:data.partner,start_date:data.startDate,anniversaries:data.anniversaries||[]})});
@@ -185,7 +198,15 @@
         return first(await request('/rest/v1/couple_messages',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({owner_id:member.ownerId,author:member.identity,text:data.text})}));
       }
       const note = /^\/messages\/([^/]+)$/.exec(path);
-      if (note && method === 'DELETE') { await request('/rest/v1/couple_messages?id=eq.' + encodeURIComponent(note[1]),{method:'DELETE'}); return {deleted:true}; }
+      if (note && method === 'DELETE') {
+        const account=await currentMember();
+        const rows=await request('/rest/v1/couple_messages?id=eq.'+encodeURIComponent(note[1])+'&select=id,author,text&limit=1');
+        const entry=rows?.[0];
+        if(!entry||entry.author!==account.identity||entry.text.startsWith(window.QXNN_MAIL_CODEC.prefix))throw new Error('只能撤回自己写的留言。');
+        const deleted=await request('/rest/v1/couple_messages?id=eq.'+encodeURIComponent(note[1])+'&author=eq.'+account.identity,{method:'DELETE',headers:{Prefer:'return=representation'}});
+        if(!deleted?.length)throw new Error('这句留言已撤回，或暂时无法撤回。');
+        return {deleted:true};
+      }
       if (path === '/media' && method === 'GET') {
         const rows = await request('/rest/v1/couple_media?status=eq.ready&select=*&order=created_at.desc');
         (rows || []).forEach(row => files.set(row.id,row));

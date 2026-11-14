@@ -167,6 +167,7 @@
       const text = document.createElement('p'); text.textContent = message.text;
       const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'message-delete'; remove.textContent = '撤下这句'; remove.setAttribute('aria-label','撤下留言：' + message.text);
       remove.addEventListener('click', async () => {
+        if (connected && message.author !== identity) return toast('只能撤回自己写的留言。');
         if (!confirm('要撤下这句留言吗？')) return;
         remove.disabled = true;
         try {
@@ -175,7 +176,9 @@
         } catch (error) { toast(error.message); remove.disabled = false; }
       });
       const badge = document.createElement('span'); badge.className = 'message-identity-badge'; badge.textContent = message.author === identity ? '我写的' : '对方写的';
-      top.append(avatar,author,badge,time); item.append(top,text,remove); list.append(item);
+      top.append(avatar,author,badge,time); item.append(top,text);
+      if (connected ? message.author === identity : !cloud?.address) item.append(remove);
+      list.append(item);
     });
   }
   async function mediaTicket(id, download = false) {
@@ -499,7 +502,7 @@
     finally { migrationBusy = false; displayMode(); }
   });
   async function copyInvite() {
-    const link=location.origin+location.pathname+'?v=20261112-member-fast';
+    const link=location.origin+location.pathname+'?v=20261114-shared-season';
     try { await navigator.clipboard.writeText(link);toast('小屋网址已复制，对方使用自己的账号登录即可。'); }
     catch { by('roomInvite').value=link;by('roomInviteField').hidden=false;by('roomInvite').focus();by('roomInvite').select();toast('网址已显示，可以长按复制。'); }
   }
@@ -525,6 +528,7 @@
   window.ourSharedSpace = {
     isConnected:() => connected,
     identity:() => identity,
+    revision:() => connectionRevision,
     request:(path,options) => { if (!connected) return Promise.reject(new Error('请先登录小屋。')); return api(path,options); },
     hasCloud:() => Boolean(cloud?.address || connection),
     chooseMedia:() => { if (uploadController || migrationBusy) return; if (connected) by('sharedMediaInput').click(); else { connectionFields(); openDialog('sharedSpaceDialog'); } }

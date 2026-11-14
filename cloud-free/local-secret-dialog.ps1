@@ -1,7 +1,10 @@
 ﻿param(
   [Parameter(Mandatory = $true)]
   [ValidateSet('token', 'result')]
-  [string]$Mode
+  [string]$Mode,
+  [string]$WindowTitle = '填写 Supabase 管理令牌',
+  [string]$Purpose = '只在内存中用于新建免费小屋，不会保存到文件、日志或聊天。',
+  [string]$ConfirmText = '开始开通'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -36,12 +39,12 @@ public static class CouplePromptVisibility {
   })
 
   if ($Mode -eq 'token') {
-    $form.Text = '填写 Supabase 管理令牌'
+    $form.Text = $WindowTitle
     $form.ClientSize = New-Object System.Drawing.Size(610, 215)
     $description = New-Object System.Windows.Forms.Label
     $description.Location = New-Object System.Drawing.Point(20, 18)
     $description.Size = New-Object System.Drawing.Size(570, 65)
-    $description.Text = "请粘贴 Supabase Personal Access Token。`r`n只在内存中用于新建免费小屋，不会保存到文件、日志或聊天。"
+    $description.Text = "请粘贴 Supabase Personal Access Token。`r`n$Purpose"
     $form.Controls.Add($description)
 
     $tokenBox = New-Object System.Windows.Forms.TextBox
@@ -52,7 +55,7 @@ public static class CouplePromptVisibility {
     $form.Controls.Add($tokenBox)
 
     $confirm = New-Object System.Windows.Forms.Button
-    $confirm.Text = '开始开通'
+    $confirm.Text = $ConfirmText
     $confirm.Location = New-Object System.Drawing.Point(355, 155)
     $confirm.Size = New-Object System.Drawing.Size(110, 36)
     $confirm.Add_Click({

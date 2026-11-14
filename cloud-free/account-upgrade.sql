@@ -67,7 +67,7 @@ create policy couple_messages_read on public.couple_messages for select to authe
 create policy couple_messages_insert on public.couple_messages for insert to authenticated
   with check(owner_id=(select public.couple_room_owner()) and author=(select public.couple_author()));
 create policy couple_messages_delete on public.couple_messages for delete to authenticated
-  using(owner_id=(select public.couple_room_owner()));
+  using(owner_id=(select public.couple_room_owner()) and author=(select public.couple_author()));
 revoke update on public.couple_messages from authenticated;
 drop policy if exists couple_media_owner on public.couple_media;
 create policy couple_media_owner on public.couple_media for select to authenticated

@@ -20,6 +20,7 @@ async function main(){
     await db.query("insert into storage.objects(bucket_id,name,metadata) values ('couple-private',$1,$2)",[oldMedia.path,{size:123,mimetype:'image/jpeg'}]);
     await db.query('select public.couple_complete_media($1)',[oldMedia.id]);
     await db.exec('reset role');await db.exec(fs.readFileSync(path.join(__dirname,'account-upgrade.sql'),'utf8'));
+    await db.exec(fs.readFileSync(path.join(__dirname,'shared-theme-and-message-permissions.sql'),'utf8'));
     await db.query("insert into public.couple_members(user_id,room_owner_id,author) values ($1,$3,'me'),($2,$3,'partner')",[a,b,owner]);
     await role(a);
     eq(await scalar('select public.couple_current_member()'),{ownerId:owner,identity:'me'});
@@ -34,16 +35,29 @@ async function main(){
     const own=await query("insert into public.couple_messages(author,text) values ('partner','A tries to spoof B') returning author,owner_id");eq(own[0],{author:'me',owner_id:owner});
     await role(b);eq(await scalar('select public.couple_current_member()'),{ownerId:owner,identity:'partner'});
     const other=await query("insert into public.couple_messages(author,text) values ('me','B tries to spoof A') returning author,owner_id");eq(other[0],{author:'partner',owner_id:owner});
+    eq(await query("delete from public.couple_messages where text='A tries to spoof B' returning id"),[]);
+    eq(await scalar("select count(*)::int from public.couple_messages where text='A tries to spoof B'"),1);
+    await db.query("insert into public.couple_theme(solar_term) values ('夏至') on conflict(owner_id) do update set solar_term=excluded.solar_term");
+    await role(a);eq(await scalar('select solar_term from public.couple_theme'),'夏至');
+    await db.query("update public.couple_theme set solar_term=''");
+    eq(await query("delete from public.couple_messages where text='B tries to spoof A' returning id"),[]);
+    const ownDelete=await query("insert into public.couple_messages(author,text) values ('me','own removable fixture') returning id");
+    eq((await query('delete from public.couple_messages where id=$1 returning id',[ownDelete[0].id])).length,1);
+    await denied("insert into public.couple_theme(owner_id,solar_term) values ('44444444-4444-4444-8444-444444444444','立冬')");
+    await assert.rejects(db.query("update public.couple_theme set solar_term='非节气'"),error=>error.code==='23514');checks++;
+    await role(b);eq(await scalar('select solar_term from public.couple_theme'),'');
     const newMedia=await scalar("select public.couple_reserve_media('new.jpg','image/jpeg',42)");eq(newMedia.path,owner+'/'+newMedia.id);
     await db.query("insert into storage.objects(bucket_id,name,metadata) values ('couple-private',$1,$2)",[newMedia.path,{size:42,mimetype:'image/jpeg'}]);
     await db.query('select public.couple_complete_media($1)',[newMedia.id]);eq((await scalar('select public.couple_storage_usage()')).usedBytes,165);
     const anniversary=[{id:'one',name:'生日',date:'2020-02-29',yearly:true}];await db.query('update public.couple_settings set anniversaries=$1',[anniversary]);
     await role(a);eq(await scalar('select anniversaries from public.couple_settings'),anniversary);
     await db.query('delete from storage.objects where name=$1',[newMedia.path]);await db.query('select public.couple_release_media($1)',[newMedia.id]);eq((await scalar('select public.couple_storage_usage()')).usedBytes,123);
-    for(const uid of [owner,stranger]){await role(uid);eq(await query('select id from public.couple_media'),[]);eq(await query('select id from public.couple_messages'),[]);eq(await query('select name from storage.objects'),[]);await denied('select public.couple_current_member()');await denied('select public.couple_storage_usage()');}
-    await db.exec('reset role;set role anon');await denied('select * from public.couple_members');await denied('select public.couple_current_member()');
+    for(const uid of [owner,stranger]){await role(uid);eq(await query('select id from public.couple_media'),[]);eq(await query('select id from public.couple_messages'),[]);eq(await query('select solar_term from public.couple_theme'),[]);eq(await query('delete from public.couple_messages returning id'),[]);eq(await query('select name from storage.objects'),[]);await denied('select public.couple_current_member()');await denied('select public.couple_storage_usage()');}
+    await db.exec('reset role;set role anon');await denied('select * from public.couple_members');await denied('select * from public.couple_theme');await denied('select public.couple_current_member()');
     await db.exec('reset role');await db.exec(fs.readFileSync(path.join(__dirname,'account-upgrade.sql'),'utf8'));await role(a);eq((await query('select id from public.couple_messages')).length,4);
-    console.log(JSON.stringify({status:'passed',checks,realCloudRequests:0,checksInclude:['original photos and messages preserved','two auth IDs one shared owner','server enforced message author','private storage and shared quota','outsider and retired account denied','anniversaries shared','repeat migration safe']}));
+    await db.exec('reset role');await db.exec(fs.readFileSync(path.join(__dirname,'shared-theme-and-message-permissions.sql'),'utf8'));await role(b);eq(await scalar('select solar_term from public.couple_theme'),'');
+    eq(await query("delete from public.couple_messages where text='A tries to spoof B' returning id"),[]);
+    console.log(JSON.stringify({status:'passed',checks,realCloudRequests:0,checksInclude:['original photos and messages preserved','two auth IDs one shared owner','server enforced message author and own-only deletion','shared theme read/write, validation and isolation','private storage and shared quota','outsider and retired account denied','anniversaries shared','repeat migration safe']}));
   }finally{await db.close();}
 }
 main().catch(error=>{console.error(error.message);process.exitCode=1;});
